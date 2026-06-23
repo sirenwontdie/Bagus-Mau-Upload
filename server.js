@@ -24,22 +24,22 @@ app.post("/api/auth", (req, res) => {
 // ── Get supported networks ──
 app.get("/api/networks", (req, res) => {
   res.json([
-    { id: "sepolia", name: "Sepolia", chain: "Ethereum", testnet: true },
     { id: "mainnet", name: "Ethereum", chain: "Ethereum", testnet: false },
-    { id: "basesepolia", name: "Base Sepolia", chain: "Base", testnet: true },
     { id: "base", name: "Base", chain: "Base", testnet: false },
-    { id: "amoy", name: "Amoy", chain: "Polygon", testnet: true },
     { id: "polygon", name: "Polygon", chain: "Polygon", testnet: false },
-    { id: "bscTestnet", name: "BSC Testnet", chain: "BSC", testnet: true },
     { id: "bsc", name: "BSC", chain: "BSC", testnet: false },
-    { id: "arbitrumSepolia", name: "Arbitrum Sepolia", chain: "Arbitrum", testnet: true },
     { id: "arbitrum", name: "Arbitrum", chain: "Arbitrum", testnet: false },
-    { id: "optimismSepolia", name: "Optimism Sepolia", chain: "Optimism", testnet: true },
     { id: "optimism", name: "Optimism", chain: "Optimism", testnet: false },
-    { id: "fuji", name: "Fuji", chain: "Avalanche", testnet: true },
     { id: "avalanche", name: "Avalanche", chain: "Avalanche", testnet: false },
-    { id: "cronosTestnet", name: "Cronos Testnet", chain: "Cronos", testnet: true },
     { id: "cronos", name: "Cronos", chain: "Cronos", testnet: false },
+    { id: "sepolia", name: "Sepolia", chain: "Ethereum", testnet: true },
+    { id: "basesepolia", name: "Base Sepolia", chain: "Base", testnet: true },
+    { id: "amoy", name: "Amoy", chain: "Polygon", testnet: true },
+    { id: "bscTestnet", name: "BSC Testnet", chain: "BSC", testnet: true },
+    { id: "arbitrumSepolia", name: "Arbitrum Sepolia", chain: "Arbitrum", testnet: true },
+    { id: "optimismSepolia", name: "Optimism Sepolia", chain: "Optimism", testnet: true },
+    { id: "fuji", name: "Fuji", chain: "Avalanche", testnet: true },
+    { id: "cronosTestnet", name: "Cronos Testnet", chain: "Cronos", testnet: true },
   ]);
 });
 

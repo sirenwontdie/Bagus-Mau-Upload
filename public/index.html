@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NFT Deploy Tool — Cyberpunk Edition</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <title>NFT Deploy Tool</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     /* ═══════════════════════════════════════════════════
        RESET & BASE
@@ -12,134 +12,103 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg: #0a0a0f;
-      --bg-card: #12121a;
-      --bg-card-hover: #18182a;
-      --primary: #00fff2;
-      --secondary: #ff00ff;
-      --tertiary: #f0ff00;
+      --bg: transparent;
+      --bg-card: rgba(10, 10, 15, 0.65);
+      --bg-card-hover: rgba(20, 20, 30, 0.7);
+      --primary: #e8e8e8;
+      --secondary: #aaaaaa;
+      --tertiary: #cccccc;
       --text: #e0e0e0;
-      --text-dim: #6a6a8a;
+      --text-dim: #888888;
       --text-bright: #ffffff;
-      --border: #1a1a2e;
-      --glow-cyan: 0 0 15px rgba(0, 255, 242, 0.3);
-      --glow-magenta: 0 0 15px rgba(255, 0, 255, 0.3);
-      --glow-yellow: 0 0 15px rgba(240, 255, 0, 0.3);
-      --font-head: 'Orbitron', sans-serif;
+      --border: rgba(255, 255, 255, 0.12);
+      --glow-cyan: none;
+      --glow-magenta: none;
+      --glow-yellow: none;
+      --font-head: 'Noto Sans JP', 'Inter', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
-      --glass-bg: rgba(18, 18, 26, 0.7);
-      --glass-border: rgba(0, 255, 242, 0.15);
+      --glass-bg: rgba(10, 10, 15, 0.6);
+      --glass-border: rgba(255, 255, 255, 0.1);
     }
 
     body {
-      background: var(--bg);
+      background: transparent;
       color: var(--text);
-      font-family: var(--font-mono);
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
       font-size: 14px;
       min-height: 100vh;
       overflow-x: hidden;
       position: relative;
     }
 
-    /* ── Scanline overlay ── */
-    body::after {
-      content: '';
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0, 255, 242, 0.015) 2px,
-        rgba(0, 255, 242, 0.015) 4px
-      );
-      pointer-events: none;
-      z-index: 99999;
-    }
-
-    /* ── Grid background ── */
+    /* ── Japanese wallpaper — FULL opacity, main layer ── */
     body::before {
       content: '';
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background-image:
-        linear-gradient(rgba(0, 255, 242, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 255, 242, 0.03) 1px, transparent 1px);
-      background-size: 50px 50px;
+      background: url('/wallpaper.jpg') center/cover no-repeat;
+      z-index: -1;
+    }
+
+    body::after { display: none; }
+
+    /* ── Floating sakura petals ── */
+    .sakura-container {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
       pointer-events: none;
       z-index: 0;
+      overflow: hidden;
+    }
+
+    .sakura {
+      position: absolute;
+      top: -30px;
+      font-size: 14px;
+      opacity: 0;
+      animation: sakuraFall linear infinite;
+    }
+
+    @keyframes sakuraFall {
+      0% {
+        opacity: 0;
+        transform: translateY(0) translateX(0) rotate(0deg) scale(0.8);
+      }
+      8% {
+        opacity: 0.7;
+      }
+      50% {
+        opacity: 0.5;
+      }
+      90% {
+        opacity: 0.3;
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(calc(100vh + 60px)) translateX(var(--drift)) rotate(var(--spin)) scale(0.5);
+      }
     }
 
     a { color: var(--primary); text-decoration: none; }
-    a:hover { text-decoration: underline; text-shadow: var(--glow-cyan); }
+    a:hover { text-decoration: underline; }
 
-    ::selection { background: var(--secondary); color: var(--bg); }
-
-    /* ═══════════════════════════════════════════════════
-       GLITCH ANIMATION
-       ═══════════════════════════════════════════════════ */
-    @keyframes glitch {
-      0% { text-shadow: 2px 0 var(--secondary), -2px 0 var(--primary); }
-      20% { text-shadow: -2px 2px var(--secondary), 2px -2px var(--primary); }
-      40% { text-shadow: 2px -2px var(--secondary), -2px 2px var(--primary); }
-      60% { text-shadow: -2px 0 var(--secondary), 2px 0 var(--primary); }
-      80% { text-shadow: 0 2px var(--secondary), 0 -2px var(--primary); }
-      100% { text-shadow: 2px 0 var(--secondary), -2px 0 var(--primary); }
-    }
-
-    @keyframes glitchSlice {
-      0%, 100% { clip-path: inset(0 0 95% 0); transform: translate(0); }
-      10% { clip-path: inset(20% 0 60% 0); transform: translate(-4px, 0); }
-      20% { clip-path: inset(50% 0 30% 0); transform: translate(4px, 0); }
-      30% { clip-path: inset(10% 0 70% 0); transform: translate(-2px, 0); }
-      40% { clip-path: inset(80% 0 5% 0); transform: translate(2px, 0); }
-      50% { clip-path: inset(30% 0 50% 0); transform: translate(-4px, 0); }
-      60% { clip-path: inset(70% 0 15% 0); transform: translate(4px, 0); }
-      70% { clip-path: inset(5% 0 85% 0); transform: translate(-2px, 0); }
-      80% { clip-path: inset(40% 0 40% 0); transform: translate(2px, 0); }
-      90% { clip-path: inset(60% 0 25% 0); transform: translate(-4px, 0); }
-    }
+    ::selection { background: var(--primary); color: #fff; }
 
     /* ═══════════════════════════════════════════════════
-       PULSE / GLOW ANIMATIONS
+       ANIMATIONS
        ═══════════════════════════════════════════════════ */
-    @keyframes pulse-border {
-      0%, 100% { border-color: rgba(0, 255, 242, 0.3); }
-      50% { border-color: rgba(0, 255, 242, 0.7); }
-    }
-
-    @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 242, 0.1); }
-      50% { box-shadow: 0 0 20px rgba(0, 255, 242, 0.3), 0 0 40px rgba(0, 255, 242, 0.1); }
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-6px); }
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes slideUp {
-      from { opacity: 0; transform: translateY(20px); }
+      from { opacity: 0; transform: translateY(16px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes neonPulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
-    }
-
-    @keyframes scanline {
-      0% { top: -5%; }
-      100% { top: 105%; }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     /* ═══════════════════════════════════════════════════
@@ -150,130 +119,96 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: var(--bg);
+      background: transparent;
       position: relative;
       z-index: 10;
     }
 
-    .gate-scanline {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, var(--primary), transparent);
-      opacity: 0.5;
-      animation: scanline 4s linear infinite;
-      pointer-events: none;
-    }
+    .gate-scanline { display: none; }
 
     .gate-box {
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
+      background: rgba(10, 10, 15, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 4px;
       padding: 48px 40px;
-      width: 440px;
+      width: 400px;
       text-align: center;
       position: relative;
       z-index: 1;
-      animation: pulse-border 3s ease-in-out infinite;
     }
 
-    .gate-box::before {
-      content: '';
-      position: absolute;
-      top: -1px; left: 20%; right: 20%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--primary), transparent);
-    }
+    .gate-box::before { display: none; }
 
     .gate-icon {
-      font-size: 48px;
+      font-size: 36px;
       margin-bottom: 12px;
-      animation: float 3s ease-in-out infinite;
-      filter: drop-shadow(0 0 10px rgba(0, 255, 242, 0.5));
+      color: var(--primary);
     }
 
     .gate-box h1 {
       font-family: var(--font-head);
-      font-size: 22px;
+      font-size: 20px;
       color: var(--primary);
       margin-bottom: 6px;
-      position: relative;
-      display: inline-block;
+      font-weight: 700;
+      display: block;
     }
 
-    .gate-box h1::after {
-      content: attr(data-text);
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      animation: glitchSlice 3s infinite linear alternate-reverse;
-      opacity: 0.8;
-    }
+    .gate-box h1::after { display: none; }
 
     .gate-box .subtitle {
       font-size: 12px;
       color: var(--text-dim);
       margin-bottom: 28px;
-      letter-spacing: 2px;
+      letter-spacing: 3px;
       text-transform: uppercase;
+      font-family: var(--font-head);
     }
 
     .gate-box input {
       width: 100%;
       padding: 14px 18px;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 2px;
-      color: var(--primary);
-      font-size: 16px;
+      color: #fff;
+      font-size: 14px;
       font-family: var(--font-mono);
       outline: none;
       margin-bottom: 16px;
       text-align: center;
       letter-spacing: 8px;
-      transition: all 0.3s;
+      transition: all 0.2s;
     }
 
     .gate-box input:focus {
-      border-color: var(--primary);
-      box-shadow: var(--glow-cyan), inset 0 0 20px rgba(0, 255, 242, 0.05);
+      border-color: rgba(255, 255, 255, 0.4);
     }
 
-    .gate-box input::placeholder { color: var(--text-dim); letter-spacing: 4px; }
+    .gate-box input::placeholder { color: rgba(255,255,255,0.3); letter-spacing: 4px; }
 
     .gate-box button {
       width: 100%;
       padding: 14px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      background: rgba(255, 255, 255, 0.9);
       border: none;
       border-radius: 2px;
-      color: var(--bg);
-      font-weight: 700;
-      font-size: 14px;
+      color: #111;
+      font-weight: 600;
+      font-size: 13px;
       font-family: var(--font-head);
       text-transform: uppercase;
       letter-spacing: 3px;
       cursor: pointer;
-      transition: all 0.3s;
-      position: relative;
-      overflow: hidden;
+      transition: all 0.2s;
     }
 
-    .gate-box button::before {
-      content: '';
-      position: absolute;
-      top: 0; left: -100%; width: 100%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transition: left 0.5s;
-    }
-
-    .gate-box button:hover::before { left: 100%; }
-    .gate-box button:hover { transform: translateY(-2px); box-shadow: var(--glow-cyan), var(--glow-magenta); }
+    .gate-box button:hover { background: #fff; }
 
     .gate-error {
-      color: #ff4444;
+      color: #ff6b6b;
       font-size: 12px;
       margin-top: 10px;
       display: none;
@@ -285,56 +220,58 @@
     /* ═══════════════════════════════════════════════════
        HEADER
        ═══════════════════════════════════════════════════ */
-    #app { display: none; min-height: 100vh; background: var(--bg); position: relative; z-index: 1; }
+    #app { display: none; min-height: 100vh; background: transparent; position: relative; z-index: 1; }
 
     .header {
-      background: var(--bg-card);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 28px;
+      background: rgba(10, 10, 15, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 16px 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky;
       top: 0;
       z-index: 100;
-      backdrop-filter: blur(10px);
     }
 
-    .header .logo { display: flex; align-items: center; gap: 12px; }
+    .header .logo { display: flex; align-items: center; gap: 10px; }
     .header .logo-icon {
-      width: 38px; height: 38px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      width: 36px; height: 36px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 2px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
-      animation: pulse-glow 3s ease-in-out infinite;
+      font-size: 16px;
+      color: #fff;
     }
 
     .header h1 {
       font-family: var(--font-head);
-      font-size: 16px;
-      color: var(--primary);
-      letter-spacing: 2px;
-      text-transform: uppercase;
+      font-size: 15px;
+      color: #fff;
+      letter-spacing: 1px;
+      font-weight: 700;
     }
 
     .header .badge {
       font-size: 10px;
-      color: var(--secondary);
-      background: rgba(255, 0, 255, 0.1);
-      border: 1px solid rgba(255, 0, 255, 0.3);
+      color: rgba(255,255,255,0.5);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       padding: 5px 12px;
       border-radius: 2px;
-      font-weight: 600;
-      letter-spacing: 1px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
-      animation: neonPulse 2s ease-in-out infinite;
+      font-family: var(--font-head);
     }
 
     .container {
-      max-width: 720px;
+      max-width: 680px;
       margin: 0 auto;
       padding: 0 20px;
       position: relative;
@@ -348,105 +285,87 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 0;
       margin: 16px 0 8px;
       position: relative;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    .tab-bar::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 10%; right: 10%;
-      height: 1px;
-      background: var(--border);
-    }
+    .tab-bar::after { display: none; }
 
     .tab-btn {
-      padding: 12px 32px;
+      padding: 12px 28px;
       cursor: pointer;
       font-family: var(--font-head);
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 2px;
       border: none;
       background: transparent;
-      color: var(--text-dim);
-      transition: all 0.3s;
+      color: rgba(255, 255, 255, 0.35);
+      transition: all 0.2s;
       position: relative;
       z-index: 1;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
     }
 
-    .tab-btn:hover { color: var(--text); }
+    .tab-btn:hover { color: rgba(255, 255, 255, 0.7); }
 
     .tab-btn.active {
-      color: var(--primary);
+      color: #fff;
+      border-bottom-color: #fff;
     }
 
-    .tab-btn.active::after {
-      content: '';
-      position: absolute;
-      bottom: -1px; left: 20%; right: 20%;
-      height: 2px;
-      background: var(--primary);
-      box-shadow: var(--glow-cyan);
-      border-radius: 2px;
-    }
+    .tab-btn.active::after { display: none; }
 
     .tab-panel { display: none; }
-    .tab-panel.active { display: block; animation: fadeIn 0.3s ease-out; }
+    .tab-panel.active { display: block; animation: fadeIn 0.2s ease-out; }
 
     /* ═══════════════════════════════════════════════════
-       CARDS — Glassmorphism + Neon Border
+       CARDS — Clean white
        ═══════════════════════════════════════════════════ */
     .card {
-      background: var(--glass-bg);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid var(--glass-border);
+      background: rgba(10, 10, 15, 0.55);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 4px;
       padding: 24px 28px;
-      margin-bottom: 16px;
-      transition: all 0.3s;
+      margin-bottom: 14px;
+      transition: all 0.2s;
       position: relative;
-      overflow: hidden;
     }
 
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--primary), transparent);
-      opacity: 0.5;
-    }
+    .card::before { display: none; }
 
     .card:hover {
-      border-color: rgba(0, 255, 242, 0.3);
-      box-shadow: 0 0 30px rgba(0, 255, 242, 0.05);
+      border-color: rgba(255, 255, 255, 0.15);
     }
 
     .card h2 {
       font-family: var(--font-head);
-      font-size: 13px;
-      color: var(--primary);
+      font-size: 11px;
+      color: #fff;
       margin-bottom: 16px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       text-transform: uppercase;
       letter-spacing: 2px;
+      font-weight: 600;
     }
 
     .card h2 .icon {
-      width: 28px; height: 28px;
-      background: rgba(0, 255, 242, 0.1);
-      border: 1px solid rgba(0, 255, 242, 0.2);
+      width: 24px; height: 24px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 2px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      font-size: 12px;
     }
 
     /* ═══════════════════════════════════════════════════
@@ -467,35 +386,34 @@
     .form-group input, .form-group select {
       width: 100%;
       padding: 12px 14px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 2px;
-      color: var(--text);
+      color: #fff;
       font-size: 13px;
       outline: none;
       font-family: var(--font-mono);
-      transition: all 0.3s;
+      transition: all 0.2s;
     }
 
     .form-group input:focus, .form-group select:focus {
-      border-color: var(--primary);
-      box-shadow: var(--glow-cyan);
+      border-color: rgba(255, 255, 255, 0.35);
     }
 
-    .form-group input::placeholder { color: var(--text-dim); }
+    .form-group input::placeholder { color: rgba(255, 255, 255, 0.3); }
 
     .form-group select {
       cursor: pointer;
       appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300fff2' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 12px center;
       padding-right: 36px;
     }
 
     .form-group select option {
-      background: var(--bg-card);
-      color: var(--text);
+      background: #1a1a1a;
+      color: #fff;
     }
 
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -505,37 +423,26 @@
        ═══════════════════════════════════════════════════ */
     .btn-primary {
       width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.9);
       border: none;
       border-radius: 2px;
-      color: var(--bg);
-      font-weight: 700;
-      font-size: 14px;
+      color: #111;
+      font-weight: 600;
+      font-size: 13px;
       font-family: var(--font-head);
       text-transform: uppercase;
       letter-spacing: 2px;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.2s;
       margin-top: 8px;
-      position: relative;
-      overflow: hidden;
     }
 
-    .btn-primary::before {
-      content: '';
-      position: absolute;
-      top: 0; left: -100%; width: 100%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-      transition: left 0.5s;
-    }
-
-    .btn-primary:hover::before { left: 100%; }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--glow-cyan), var(--glow-magenta); }
+    .btn-primary::before { display: none; }
+    .btn-primary:hover { background: #fff; }
     .btn-primary:disabled {
-      background: linear-gradient(135deg, #333, #444);
-      color: #666;
-      box-shadow: none;
+      background: rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.3);
       cursor: not-allowed;
       transform: none;
     }
@@ -544,26 +451,26 @@
       width: 100%;
       padding: 12px;
       background: transparent;
-      border: 1px solid var(--primary);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 2px;
-      color: var(--primary);
+      color: #fff;
       font-weight: 600;
       font-size: 12px;
       font-family: var(--font-head);
       text-transform: uppercase;
       letter-spacing: 1.5px;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.2s;
     }
 
     .btn-secondary:hover {
-      background: rgba(0, 255, 242, 0.1);
-      box-shadow: var(--glow-cyan);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.35);
     }
 
     .btn-secondary:disabled {
-      border-color: #333;
-      color: #555;
+      border-color: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.2);
       cursor: not-allowed;
     }
 
@@ -573,12 +480,12 @@
     .network-warning {
       display: none;
       padding: 10px 14px;
-      background: rgba(255, 200, 0, 0.1);
-      border: 1px solid rgba(255, 200, 0, 0.3);
+      background: rgba(255, 183, 77, 0.15);
+      border: 1px solid rgba(255, 183, 77, 0.3);
       border-radius: 2px;
       margin-bottom: 12px;
       font-size: 12px;
-      color: var(--tertiary);
+      color: #ffb74d;
       font-weight: 600;
       align-items: center;
       gap: 8px;
@@ -587,10 +494,10 @@
 
     .btn-switch-network {
       padding: 6px 14px;
-      background: var(--tertiary);
+      background: rgba(255, 255, 255, 0.9);
       border: none;
       border-radius: 2px;
-      color: var(--bg);
+      color: #111;
       font-size: 10px;
       font-weight: 700;
       cursor: pointer;
@@ -600,15 +507,16 @@
       letter-spacing: 1px;
       transition: all 0.2s;
     }
-    .btn-switch-network:hover { box-shadow: var(--glow-yellow); }
+    .btn-switch-network:hover { background: #fff; }
 
     /* ═══════════════════════════════════════════════════
        RESULT BOX
        ═══════════════════════════════════════════════════ */
     #result {
       display: none;
-      background: var(--glass-bg);
-      border: 1px solid rgba(0, 255, 100, 0.3);
+      background: rgba(10, 10, 15, 0.55);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(100, 200, 100, 0.25);
       border-radius: 4px;
       padding: 24px 28px;
       margin-top: 16px;
@@ -616,41 +524,42 @@
 
     #result h2 {
       font-family: var(--font-head);
-      font-size: 13px;
-      color: #00ff64;
+      font-size: 12px;
+      color: #2e7d32;
       margin-bottom: 16px;
       display: flex;
       align-items: center;
       gap: 8px;
       text-transform: uppercase;
-      letter-spacing: 2px;
+      letter-spacing: 1.5px;
+      font-weight: 600;
     }
 
     .result-row {
       display: flex;
       justify-content: space-between;
       padding: 10px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       font-size: 13px;
     }
     .result-row:last-child { border-bottom: none; }
-    .result-label { color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 10px; }
-    .result-value { color: var(--text); font-family: var(--font-mono); word-break: break-all; text-align: right; max-width: 60%; font-size: 12px; }
-    .result-value a { color: var(--primary); font-weight: 600; }
+    .result-label { color: rgba(255,255,255,0.4); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 10px; }
+    .result-value { color: #fff; font-family: var(--font-mono); word-break: break-all; text-align: right; max-width: 60%; font-size: 12px; }
+    .result-value a { color: #81c784; font-weight: 600; }
 
     /* ═══════════════════════════════════════════════════
        ERROR BOX
        ═══════════════════════════════════════════════════ */
     #error-box {
       display: none;
-      background: rgba(255, 0, 0, 0.05);
-      border: 1px solid rgba(255, 68, 68, 0.3);
+      background: rgba(255, 80, 80, 0.1);
+      border: 1px solid rgba(255, 80, 80, 0.25);
       border-radius: 4px;
       padding: 20px;
       margin-top: 16px;
     }
-    #error-box strong { color: #ff4444; font-family: var(--font-head); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
-    #error-msg { color: #ff8888; font-size: 11px; margin-top: 8px; white-space: pre-wrap; font-family: var(--font-mono); }
+    #error-box strong { color: #ff6b6b; font-family: var(--font-head); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    #error-msg { color: #ff8a8a; font-size: 11px; margin-top: 8px; white-space: pre-wrap; font-family: var(--font-mono); }
 
     /* ═══════════════════════════════════════════════════
        SPINNER
@@ -658,8 +567,8 @@
     .spinner {
       display: inline-block;
       width: 16px; height: 16px;
-      border: 2px solid rgba(10, 10, 15, 0.3);
-      border-top-color: var(--bg);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-top-color: #fff;
       border-radius: 50%;
       animation: spin 0.6s linear infinite;
       margin-right: 8px;
@@ -672,8 +581,8 @@
     .preview-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(10px);
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(6px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -682,15 +591,15 @@
     }
 
     .preview-modal {
-      background: var(--bg-card);
-      border: 1px solid var(--glass-border);
+      background: rgba(15, 15, 20, 0.9);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 4px;
-      width: 500px;
+      width: 480px;
       max-width: 92vw;
       max-height: 85vh;
       overflow: hidden;
-      animation: slideUp 0.3s ease-out;
-      box-shadow: 0 0 60px rgba(0, 255, 242, 0.1);
+      animation: slideUp 0.2s ease-out;
     }
 
     .preview-header {
@@ -703,27 +612,28 @@
 
     .preview-header h3 {
       font-family: var(--font-head);
-      font-size: 13px;
-      color: var(--primary);
+      font-size: 12px;
+      color: #fff;
       margin: 0;
       text-transform: uppercase;
       letter-spacing: 2px;
+      font-weight: 600;
     }
 
     .preview-close {
-      width: 30px; height: 30px;
-      border: 1px solid var(--border);
+      width: 28px; height: 28px;
+      border: 1px solid rgba(255,255,255,0.15);
       background: transparent;
       border-radius: 2px;
-      color: var(--text-dim);
-      font-size: 16px;
+      color: rgba(255,255,255,0.5);
+      font-size: 14px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.2s;
     }
-    .preview-close:hover { border-color: var(--secondary); color: var(--secondary); }
+    .preview-close:hover { border-color: #fff; color: #fff; }
 
     .preview-body { padding: 16px 22px 22px; overflow-y: auto; max-height: 55vh; }
 
@@ -731,16 +641,16 @@
       display: flex;
       justify-content: space-between;
       padding: 8px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.03);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
       font-size: 13px;
     }
     .preview-row:last-child { border-bottom: none; }
-    .preview-label { color: var(--text-dim); font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
-    .preview-value { color: var(--text); font-family: var(--font-mono); font-size: 12px; text-align: right; max-width: 60%; word-break: break-all; }
+    .preview-label { color: rgba(255,255,255,0.4); font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
+    .preview-value { color: #fff; font-family: var(--font-mono); font-size: 12px; text-align: right; max-width: 60%; word-break: break-all; }
 
     .preview-footer {
       padding: 14px 22px;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid rgba(255,255,255,0.08);
       display: flex;
       gap: 10px;
     }
@@ -752,7 +662,7 @@
       border-radius: 2px;
       font-family: var(--font-head);
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 1.5px;
       cursor: pointer;
@@ -760,17 +670,17 @@
     }
 
     .preview-btn-cancel {
-      background: transparent;
-      color: var(--text-dim);
-      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.5);
+      border: 1px solid rgba(255,255,255,0.12);
     }
-    .preview-btn-cancel:hover { border-color: var(--text-dim); color: var(--text); }
+    .preview-btn-cancel:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
 
     .preview-btn-confirm {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: var(--bg);
+      background: rgba(255, 255, 255, 0.9);
+      color: #111;
     }
-    .preview-btn-confirm:hover { box-shadow: var(--glow-cyan); transform: translateY(-1px); }
+    .preview-btn-confirm:hover { background: #fff; }
 
     /* ═══════════════════════════════════════════════════
        REVEAL STATUS GRID
@@ -779,8 +689,8 @@
     .reveal-status-item {
       padding: 12px;
       border-radius: 2px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
     .reveal-status-label {
       font-size: 9px;
@@ -799,8 +709,8 @@
     }
 
     .reveal-preview-box {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 2px;
       padding: 12px;
       font-family: var(--font-mono);
@@ -818,68 +728,71 @@
       margin-bottom: 6px;
       font-family: var(--font-mono);
     }
-    .validate-ok { background: rgba(0, 255, 100, 0.1); color: #00ff64; border: 1px solid rgba(0, 255, 100, 0.2); }
-    .validate-fail { background: rgba(255, 68, 68, 0.1); color: #ff6666; border: 1px solid rgba(255, 68, 68, 0.2); }
+    .validate-ok { background: rgba(100, 200, 100, 0.1); color: #81c784; border: 1px solid rgba(100, 200, 100, 0.2); }
+    .validate-fail { background: rgba(255, 80, 80, 0.1); color: #ff6b6b; border: 1px solid rgba(255, 80, 80, 0.2); }
 
     /* ═══════════════════════════════════════════════════
        STEP GUIDE
        ═══════════════════════════════════════════════════ */
     .guide-card {
-      background: rgba(255, 0, 255, 0.03);
-      border: 1px solid rgba(255, 0, 255, 0.15);
-      border-radius: 4px;
+      background: rgba(10, 10, 15, 0.5);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
       padding: 20px 24px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .guide-card h3 {
       font-family: var(--font-head);
       font-size: 11px;
-      color: var(--secondary);
+      color: #fff;
       text-transform: uppercase;
       letter-spacing: 2px;
       margin-bottom: 14px;
       display: flex;
       align-items: center;
       gap: 8px;
+      font-weight: 600;
     }
 
     .guide-step {
       display: flex;
       align-items: flex-start;
       gap: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       padding: 10px 12px;
-      background: rgba(0, 0, 0, 0.2);
-      border-left: 2px solid var(--secondary);
+      background: rgba(255, 255, 255, 0.04);
+      border-left: 2px solid rgba(255, 255, 255, 0.3);
       border-radius: 0 2px 2px 0;
     }
 
     .guide-step:last-child { margin-bottom: 0; }
 
     .step-num {
-      width: 24px; height: 24px;
-      min-width: 24px;
-      background: var(--secondary);
-      color: var(--bg);
+      width: 22px; height: 22px;
+      min-width: 22px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
       border-radius: 2px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: var(--font-head);
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
     }
 
     .step-text {
       font-size: 12px;
       color: var(--text);
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
     .step-text code {
-      background: rgba(0, 255, 242, 0.1);
-      color: var(--primary);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
       padding: 2px 6px;
       border-radius: 2px;
       font-size: 11px;
@@ -893,31 +806,29 @@
       bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
-      padding: 14px 24px;
+      padding: 12px 20px;
       border-radius: 2px;
       z-index: 100000;
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-family: var(--font-mono);
+      gap: 8px;
+      font-family: 'Inter', sans-serif;
       font-size: 13px;
-      font-weight: 600;
-      animation: slideUp 0.3s ease-out;
+      font-weight: 500;
+      animation: slideUp 0.2s ease-out;
       max-width: 90vw;
     }
 
     .toast-success {
-      background: rgba(0, 255, 100, 0.1);
-      border: 1px solid rgba(0, 255, 100, 0.3);
-      color: #00ff64;
-      backdrop-filter: blur(10px);
+      background: rgba(100, 200, 100, 0.15);
+      border: 1px solid rgba(100, 200, 100, 0.3);
+      color: #81c784;
     }
 
     .toast-error {
-      background: rgba(255, 0, 0, 0.1);
-      border: 1px solid rgba(255, 68, 68, 0.3);
-      color: #ff6666;
-      backdrop-filter: blur(10px);
+      background: rgba(255, 80, 80, 0.15);
+      border: 1px solid rgba(255, 80, 80, 0.3);
+      color: #ff6b6b;
     }
 
     /* ═══════════════════════════════════════════════════
@@ -935,8 +846,8 @@
       align-items: center;
       gap: 10px;
       padding: 12px 16px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 2px;
       color: var(--text);
       font-size: 13px;
@@ -945,19 +856,18 @@
     }
 
     .refresh-link:hover {
-      border-color: var(--primary);
-      background: rgba(0, 255, 242, 0.05);
+      border-color: rgba(255, 255, 255, 0.25);
     }
 
     .refresh-link .link-icon { font-size: 18px; }
     .refresh-link .link-text { flex: 1; }
-    .refresh-link .link-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-head); }
+    .refresh-link .link-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-head); }
 
     .refresh-timer {
       text-align: center;
       padding: 16px;
-      background: rgba(240, 255, 0, 0.05);
-      border: 1px solid rgba(240, 255, 0, 0.15);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 2px;
       margin-top: 12px;
     }
@@ -972,9 +882,9 @@
     }
 
     .refresh-timer .timer-value {
-      font-size: 24px;
+      font-size: 22px;
       font-family: var(--font-head);
-      color: var(--tertiary);
+      color: #fff;
       font-weight: 700;
     }
 
@@ -994,7 +904,7 @@
       font-family: var(--font-head);
     }
 
-    .footer span { color: var(--primary); }
+    .footer span { color: rgba(255,255,255,0.5); }
 
     .deco-line {
       display: flex;
@@ -1008,13 +918,13 @@
 
     .deco-dot {
       width: 4px; height: 4px;
-      background: var(--primary);
+      background: rgba(255,255,255,0.3);
       border-radius: 50%;
     }
 
     .deco-line-bar {
       width: 40px; height: 1px;
-      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      background: rgba(255,255,255,0.1);
     }
 
     /* ═══════════════════════════════════════════════════
@@ -1029,8 +939,8 @@
 
     .network-card {
       padding: 10px 14px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 2px;
       cursor: pointer;
       transition: all 0.2s;
@@ -1039,8 +949,8 @@
       justify-content: space-between;
     }
 
-    .network-card:hover { border-color: var(--primary); background: rgba(0, 255, 242, 0.03); }
-    .network-card.selected { border-color: var(--primary); box-shadow: var(--glow-cyan); background: rgba(0, 255, 242, 0.05); }
+    .network-card:hover { border-color: rgba(255,255,255,0.25); }
+    .network-card.selected { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.08); }
 
     .network-card .nc-name { font-size: 12px; font-weight: 600; color: var(--text); }
     .network-card .nc-chain { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
@@ -1055,8 +965,8 @@
       font-family: var(--font-head);
     }
 
-    .nc-badge-testnet { background: rgba(255, 200, 0, 0.15); color: var(--tertiary); }
-    .nc-badge-mainnet { background: rgba(0, 255, 100, 0.15); color: #00ff64; }
+    .nc-badge-testnet { background: rgba(255, 183, 77, 0.15); color: #ffb74d; }
+    .nc-badge-mainnet { background: rgba(100, 200, 100, 0.15); color: #81c784; }
 
     /* ═══════════════════════════════════════════════════
        RESPONSIVE
@@ -1065,7 +975,7 @@
       .gate-box { width: 92%; padding: 36px 24px; }
       .form-row { grid-template-columns: 1fr; }
       .header h1 { font-size: 13px; }
-      .tab-btn { padding: 10px 20px; font-size: 10px; }
+      .tab-btn { padding: 10px 18px; font-size: 10px; }
       .preview-modal { border-radius: 2px; }
       .network-grid { grid-template-columns: 1fr; }
       .reveal-status { grid-template-columns: 1fr; }
@@ -1073,6 +983,9 @@
   </style>
 </head>
 <body>
+  <!-- Sakura petals -->
+  <div class="sakura-container" id="sakura-container"></div>
+
 
   <!-- ═══════════════════════════════════════════════════
        PASSWORD GATE
@@ -1080,8 +993,8 @@
   <div id="gate">
     <div class="gate-scanline"></div>
     <div class="gate-box">
-      <div class="gate-icon">⬡</div>
-      <h1 data-text="NFT Deploy">NFT Deploy</h1>
+      <div class="gate-icon">刀</div>
+      <h1>NFT Deploy</h1>
       <p class="subtitle">Multi-chain contract deployment tool</p>
       <input type="password" id="pw-input" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()">
       <button onclick="doLogin()">Initialize ▸</button>
@@ -1095,7 +1008,7 @@
   <div id="app">
     <div class="header">
       <div class="logo">
-        <div class="logo-icon">⬡</div>
+        <div class="logo-icon">刀</div>
         <h1>NFT Deploy</h1>
       </div>
       <span class="badge">Multi-Chain</span>
@@ -1106,6 +1019,7 @@
       <div class="tab-bar">
         <button class="tab-btn active" onclick="switchTab('deploy')">Deploy</button>
         <button class="tab-btn" onclick="switchTab('reveal')">Reveal</button>
+        <button class="tab-btn" onclick="switchTab('verify')">Verify</button>
         <button class="tab-btn" onclick="switchTab('refresh')">Refresh</button>
       </div>
     </div>
@@ -1210,30 +1124,30 @@
 
       <!-- Guide -->
       <div class="guide-card">
-        <h3>▸ How to deploy your NFT collection</h3>
+        <h3> Cara Deploy NFT Collection</h3>
         <div class="guide-step">
           <div class="step-num">1</div>
-          <div class="step-text">Connect your EVM wallet (MetaMask, Rabby, WalletConnect) using the wallet section above.</div>
+          <div class="step-text"><strong>Connect wallet EVM</strong> (MetaMask, Rabby, WalletConnect) lewat tombol di atas.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">2</div>
-          <div class="step-text">Select the target blockchain from the network dropdown. Make sure your wallet is on the matching network.</div>
+          <div class="step-text"><strong>Pilih chain</strong> yang mau lo deploy. Pastikan wallet lo ada di network yang sama.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">3</div>
-          <div class="step-text">Fill in your collection name, symbol, max supply, and mint price. Set max per wallet limit.</div>
+          <div class="step-text"><strong>Isi data collection:</strong> nama, simbol, max supply, harga mint, dan batas mint per wallet.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">4</div>
-          <div class="step-text">Enter your <code>Hidden URI</code> (placeholder metadata shown before reveal) and <code>Base URI</code> (real metadata URL).</div>
+          <div class="step-text"><strong>Isi metadata:</strong> <code>Hidden URI</code> (placeholder sebelum reveal) dan <code>Base URI</code> (URL real metadata).</div>
         </div>
         <div class="guide-step">
           <div class="step-num">5</div>
-          <div class="step-text">Click <code>Deploy Contract</code> and review the transaction preview. Confirm in your wallet to deploy.</div>
+          <div class="step-text">Klik <code>Deploy Contract</code> dan review transaksi di modal preview. Confirm di wallet lo.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">6</div>
-          <div class="step-text">After deployment, save your contract address. Use the Reveal tab to reveal your collection on OpenSea.</div>
+          <div class="step-text">Simpan alamat kontrak. Pakai tab <code>Reveal</code> untuk reveal collection di OpenSea.</div>
         </div>
       </div>
 
@@ -1359,54 +1273,154 @@
 
       <!-- Guide -->
       <div class="guide-card">
-        <h3>▸ The Full Reveal Flow</h3>
+        <h3> Flow Reveal Lengkap</h3>
         <div class="guide-step">
           <div class="step-num">1</div>
-          <div class="step-text"><strong>Deploy</strong> your ERC721 contract on the <code>Deploy</code> tab. Set a <code>Hidden URI</code> (placeholder metadata) and a <code>Base URI</code> (real metadata).</div>
+          <div class="step-text"><strong>Deploy</strong> kontrak ERC721 lo di tab <code>Deploy</code>. Set <code>Hidden URI</code> (placeholder metadata) dan <code>Base URI</code> (real metadata).</div>
         </div>
         <div class="guide-step">
           <div class="step-num">2</div>
-          <div class="step-text"><strong>Mint</strong> — users mint NFTs. They see only the placeholder art (hidden metadata).</div>
+          <div class="step-text"><strong>Mint</strong> — user mint NFT. Yang mereka lihat cuma placeholder art (hidden metadata).</div>
         </div>
         <div class="guide-step">
           <div class="step-num">3</div>
-          <div class="step-text"><strong>Reveal</strong> — come to this tab and call <code>reveal()</code> to switch from hidden to real metadata. Only the contract deployer can do this.</div>
+          <div class="step-text"><strong>Reveal</strong> — buka tab ini, call <code>reveal()</code> untuk switch dari hidden ke real metadata. Cuma deployer yang bisa.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">4</div>
-          <div class="step-text"><strong>Refresh</strong> — go to the <code>Refresh</code> tab to trigger OpenSea metadata refresh so collectors see the real artwork.</div>
+          <div class="step-text"><strong>Refresh</strong> — buka tab <code>Refresh</code> untuk trigger refresh metadata di OpenSea supaya collector lihat real artwork.</div>
         </div>
       </div>
 
       <div class="guide-card">
-        <h3>▸ How to reveal your collection</h3>
+        <h3> Cara Reveal Collection</h3>
         <div class="guide-step">
           <div class="step-num">1</div>
-          <div class="step-text">Connect the wallet that deployed the contract. Only the contract owner can reveal.</div>
+          <div class="step-text"><strong>Connect wallet</strong> yang deploy kontrak. Cuma owner yang bisa reveal.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">2</div>
-          <div class="step-text">Select the same network where your contract is deployed from the dropdown.</div>
+          <div class="step-text"><strong>Pilih network</strong> yang sama tempat kontrak lo di-deploy.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">3</div>
-          <div class="step-text">Enter your contract address (0x...) and click <code>Read Contract Status</code> to verify current state.</div>
+          <div class="step-text">Masukkan alamat kontrak (0x...) lalu klik <code>Read Contract Status</code> untuk cek status.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">4</div>
-          <div class="step-text">Enter the new <code>Base URI</code> — this should be the IPFS URL or HTTPS URL pointing to your real metadata files (e.g., <code>ipfs://QmXXX/</code>).</div>
+          <div class="step-text">Masukkan <code>Base URI</code> baru — URL IPFS atau HTTPS yang menuju file metadata real (contoh: <code>ipfs://QmXXX/</code>).</div>
         </div>
         <div class="guide-step">
           <div class="step-num">5</div>
-          <div class="step-text">Optionally validate metadata URLs by clicking <code>Validate Metadata URLs</code> to check if token metadata files are accessible.</div>
+          <div class="step-text">Opsional: validasi URL metadata dengan klik <code>Validate Metadata URLs</code> untuk cek apakah file metadata bisa diakses.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">6</div>
-          <div class="step-text">Click <code>Confirm Reveal</code> and approve the transaction in your wallet. This sets the real baseURI and marks the collection as revealed.</div>
+          <div class="step-text">Klik <code>Confirm Reveal</code> dan approve transaksi di wallet. Ini set baseURI real dan tandai collection sebagai revealed.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">7</div>
-          <div class="step-text">After reveal, go to the <code>Refresh</code> tab to refresh metadata on OpenSea so collectors see the real artwork.</div>
+          <div class="step-text">Setelah reveal, buka tab <code>Refresh</code> untuk refresh metadata di OpenSea supaya collector lihat real artwork.</div>
+        </div>
+      </div>
+
+      <div class="deco-line">
+        <div class="deco-line-bar"></div><div class="deco-dot"></div><div class="deco-line-bar"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         VERIFY PANEL
+         ═══════════════════════════════════════════════════ -->
+    <div id="verify-panel" class="container tab-panel">
+
+      <!-- Contract Info -->
+      <div class="card">
+        <h2><span class="icon">印</span> Verifikasi Kontrak</h2>
+        <div class="form-group">
+          <label>Alamat Kontrak *</label>
+          <input type="text" id="verify-contract" placeholder="0x...">
+        </div>
+        <div class="form-group">
+          <label>Chain *</label>
+          <select id="verify-network"></select>
+        </div>
+      </div>
+
+      <!-- Source Info -->
+      <div class="card">
+        <h2><span class="icon">紙</span> Source Code</h2>
+        <div class="form-group">
+          <label>Nama Kontrak (Solidity)</label>
+          <input type="text" id="verify-contract-name" placeholder="NFTCollection" value="NFTCollection">
+        </div>
+        <div class="form-group">
+          <label>Solc Version</label>
+          <select id="verify-solc">
+            <option value="0.8.20">0.8.20</option>
+            <option value="0.8.19">0.8.19</option>
+            <option value="0.8.17">0.8.17</option>
+            <option value="0.8.9">0.8.9</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Optimization</label>
+          <select id="verify-optimization">
+            <option value="200">Yes (200 runs)</option>
+            <option value="0">No</option>
+          </select>
+        </div>
+        <button class="btn-primary" onclick="openEtherscanVerify()">Buka Etherscan / Blockscout</button>
+      </div>
+
+      <!-- Guide -->
+      <div class="guide-card">
+        <h3> Cara Verifikasi Smart Contract</h3>
+        <div class="guide-step">
+          <div class="step-num">1</div>
+          <div class="step-text"><strong>Masukkan alamat kontrak</strong> yang sudah lo deploy ke kolom di atas.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">2</div>
+          <div class="step-text"><strong>Pilih chain</strong> tempat kontrak lo di-deploy.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">3</div>
+          <div class="step-text">Klik <code>Buka Etherscan / Blockscout</code>. Lo akan dibawa ke halaman verifikasi di block explorer.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">4</div>
+          <div class="step-text"><strong>Isi form verifikasi:</strong><br>
+            - Contract Name: <code>NFTCollection</code><br>
+            - Compiler: <code>0.8.20</code><br>
+            - Optimization: <code>Yes</code> (200 runs)<br>
+            - License: MIT
+          </div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">5</div>
+          <div class="step-text"><strong>Paste source code</strong> dari file <code>contracts/NFTCollection.sol</code>. Kalau pakai flatten, paste hasil flatten-nya.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">6</div>
+          <div class="step-text">Constructor arguments akan di-generate otomatis dari bytecode. Biasanya Etherscan bisa auto-detect.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">7</div>
+          <div class="step-text">Klik <code>Verify & Publish</code>. Proses butuh 1-2 menit. Setelah berhasil, kontrak lo akan punya badge verifikasi (centang biru) di Etherscan.</div>
+        </div>
+      </div>
+
+      <div class="guide-card">
+        <h3>Kenapa Harus Verifikasi?</h3>
+        <div class="guide-step">
+          <div class="step-text"><strong>Trust & Transparansi</strong> — Kontrak yang terverifikasi bisa di-source code-nya oleh siapapun. User/collector bisa audit kode sebelum beli. Tanpa verifikasi, orang-orang ragu karena ga bisa cek apakah ada backdoor atau scam function.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-text"><strong>Interaksi lebih mudah</strong> — Etherscan bisa auto-generate interface untuk call function (read/write). User bisa langsung mint, reveal, atau pause dari Etherscan tanpa perlu front-end.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-text"><strong>OpenSea / Marketplace</strong> — Banyak marketplace verifikasi kontrak sebelum list. Kontrak yang ga verified seringkali ga muncul dengan benar.</div>
         </div>
       </div>
 
@@ -1427,7 +1441,7 @@
           <label>OpenSea Collection URL</label>
           <input type="text" id="refresh-url" placeholder="https://opensea.io/collection/my-collection" oninput="parseRefreshUrl()">
         </div>
-        <button class="btn-primary" id="btn-parse-refresh" onclick="parseRefreshUrl()">▸ Parse Collection</button>
+        <button class="btn-primary" id="btn-parse-refresh" onclick="parseRefreshUrl()">Parse Collection</button>
       </div>
 
       <!-- Parsed Results (hidden until parsed) -->
@@ -1451,38 +1465,38 @@
 
       <!-- Guide -->
       <div class="guide-card">
-        <h3>▸ How to refresh metadata on OpenSea</h3>
+        <h3> Cara Refresh Metadata di OpenSea</h3>
         <div class="guide-step">
           <div class="step-num">1</div>
-          <div class="step-text">Paste your OpenSea collection URL in the field above and click <code>Parse Collection</code>.</div>
+          <div class="step-text">Paste URL OpenSea collection lo ke kolom di atas, lalu klik <code>Parse Collection</code>.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">2</div>
-          <div class="step-text">Click the OpenSea link to open your collection page. If your collection was recently revealed, the images may still show placeholder art.</div>
+          <div class="step-text">Klik link OpenSea untuk buka halaman collection. Kalau baru reveal, gambar mungkin masih placeholder.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">3</div>
-          <div class="step-text">On the OpenSea collection page, click the <code>•••</code> (more options) menu in the top-right area.</div>
+          <div class="step-text">Di halaman OpenSea, klik menu <code>•••</code> (more options) di pojok kanan atas.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">4</div>
-          <div class="step-text">Select <code>Refresh metadata</code> from the dropdown menu. OpenSea will queue a metadata refresh for your collection.</div>
+          <div class="step-text">Pilih <code>Refresh metadata</code> dari dropdown. OpenSea akan queue refresh untuk collection lo.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">5</div>
-          <div class="step-text">Wait approximately <code>5-10 minutes</code> for the refresh to complete. You can check back by viewing individual token pages.</div>
+          <div class="step-text">Tunggu sekitar <code>5-10 menit</code> untuk refresh selesai. Lo bisa cek dengan buka halaman token individual.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">6</div>
-          <div class="step-text">For <strong>individual token refresh</strong>, visit the token page on OpenSea, click the <code>•••</code> menu, and select <code>Refresh metadata</code>.</div>
+          <div class="step-text"><strong>Refresh individual token</strong>: buka halaman token di OpenSea, klik menu <code>•••</code>, pilih <code>Refresh metadata</code>.</div>
         </div>
       </div>
 
       <!-- Additional Tips -->
       <div class="guide-card">
-        <h3>▸ Quick Links &amp; Marketplaces</h3>
+        <h3> Link & Marketplace</h3>
         <div class="step-text" style="margin-bottom:8px;">
-          After reveal, you can also view and refresh your collection on these marketplaces:
+          Setelah reveal, lo bisa lihat dan refresh collection di marketplace ini:
         </div>
         <div class="refresh-links" id="refresh-marketplace-links">
           <!-- Filled dynamically after parse -->
@@ -1571,6 +1585,31 @@
     // INIT
     // ══════════════════════════════════════════════════════════════
     window.addEventListener('DOMContentLoaded', function() {
+      // ── Spawn sakura petals ──
+      (function() {
+        var container = document.getElementById('sakura-container');
+        if (!container) return;
+        var petals = ['🌸', '✿', '❀', '🎀', '🩷'];
+        function spawnPetal() {
+          var el = document.createElement('span');
+          el.className = 'sakura';
+          el.textContent = petals[Math.floor(Math.random() * petals.length)];
+          el.style.left = Math.random() * 100 + '%';
+          el.style.fontSize = (10 + Math.random() * 10) + 'px';
+          el.style.setProperty('--drift', (Math.random() * 120 - 60) + 'px');
+          el.style.setProperty('--spin', (Math.random() * 720 - 360) + 'deg');
+          var dur = 8 + Math.random() * 12;
+          el.style.animationDuration = dur + 's';
+          el.style.animationDelay = Math.random() * 2 + 's';
+          container.appendChild(el);
+          setTimeout(function() { if (el.parentNode) el.remove(); }, (dur + 3) * 1000);
+        }
+        // Initial burst
+        for (var i = 0; i < 6; i++) { setTimeout(spawnPetal, i * 800); }
+        // Continuous spawning
+        setInterval(spawnPetal, 2500);
+      })();
+
       walletManager = new window.WalletManager();
       walletManager.init();
       walletUI = new window.WalletUI(walletManager);
@@ -1629,6 +1668,9 @@
 
       if (name === 'reveal') {
         loadRevealNetworks();
+      }
+      if (name === 'verify') {
+        loadVerifyNetworks();
       }
     }
 
@@ -2401,6 +2443,79 @@
       box.style.display = 'block';
       msgEl.textContent = msg;
       document.getElementById('reveal-result-card').style.display = 'none';
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // VERIFY — NETWORKS
+    // ══════════════════════════════════════════════════════════════
+    function loadVerifyNetworks() {
+      var sel = document.getElementById('verify-network');
+      if (!sel || sel.options.length > 1) return;
+      if (networks.length === 0) {
+        fetch('/api/networks')
+          .then(function(r) { return r.json(); })
+          .then(function(data) { networks = data; populateVerifyNetworks(sel); })
+          .catch(function() {});
+      } else {
+        populateVerifyNetworks(sel);
+      }
+    }
+
+    function populateVerifyNetworks(sel) {
+      var currentChain = '';
+      networks.forEach(function(n) {
+        if (n.chain !== currentChain) {
+          if (currentChain !== '') {
+            var sep = document.createElement('option');
+            sep.disabled = true;
+            sep.textContent = '─────────────────────';
+            sel.appendChild(sep);
+          }
+          currentChain = n.chain;
+        }
+        var opt = document.createElement('option');
+        opt.value = n.id;
+        opt.textContent = (n.testnet ? '🧪 ' : '🟢 ') + n.name;
+        sel.appendChild(opt);
+      });
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // VERIFY — OPEN ETHERSCAN VERIFY
+    // ══════════════════════════════════════════════════════════════
+    function openEtherscanVerify() {
+      var contractAddr = document.getElementById('verify-contract').value.trim();
+      var networkId = document.getElementById('verify-network').value;
+      var contractName = document.getElementById('verify-contract-name').value.trim() || 'NFTCollection';
+      var solcVersion = document.getElementById('verify-solc').value;
+      var optimization = document.getElementById('verify-optimization').value;
+
+      if (!contractAddr || !contractAddr.startsWith('0x')) {
+        showToast('Masukkan alamat kontrak yang valid', 'error');
+        return;
+      }
+
+      var explorerMap = {
+        mainnet: 'https://etherscan.io', sepolia: 'https://sepolia.etherscan.io',
+        polygon: 'https://polygonscan.com', amoy: 'https://amoy.polygonscan.com',
+        bsc: 'https://bscscan.com', bscTestnet: 'https://testnet.bscscan.com',
+        arbitrum: 'https://arbiscan.io', arbitrumSepolia: 'https://sepolia.arbiscan.io',
+        optimism: 'https://optimistic.etherscan.io', optimismSepolia: 'https://sepolia-optimism.etherscan.io',
+        base: 'https://basescan.org', basesepolia: 'https://sepolia.basescan.org',
+        avalanche: 'https://snowtrace.io', fuji: 'https://testnet.snowtrace.io',
+        cronos: 'https://cronoscan.com', cronosTestnet: 'https://cronoscan.com',
+      };
+
+      var explorer = explorerMap[networkId];
+      if (!explorer) {
+        showToast('Chain ini belum support auto-verify. Verifikasi manual di block explorer.', 'error');
+        return;
+      }
+
+      // For Solidity single-file verification
+      var url = explorer + '/contract/' + contractAddr + '#code';
+      window.open(url, '_blank');
+      showToast('Halaman verifikasi dibuka. Isi form di block explorer.', 'success');
     }
 
     // ══════════════════════════════════════════════════════════════
