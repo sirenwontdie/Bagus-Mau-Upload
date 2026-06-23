@@ -3,407 +3,1129 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NFT Deploy Tool ✿</title>
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>NFT Deploy Tool — Cyberpunk Edition</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* ═══════════════════════════════════════════════════
+       RESET & BASE
+       ═══════════════════════════════════════════════════ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0a0f;
+      --bg-card: #12121a;
+      --bg-card-hover: #18182a;
+      --primary: #00fff2;
+      --secondary: #ff00ff;
+      --tertiary: #f0ff00;
+      --text: #e0e0e0;
+      --text-dim: #6a6a8a;
+      --text-bright: #ffffff;
+      --border: #1a1a2e;
+      --glow-cyan: 0 0 15px rgba(0, 255, 242, 0.3);
+      --glow-magenta: 0 0 15px rgba(255, 0, 255, 0.3);
+      --glow-yellow: 0 0 15px rgba(240, 255, 0, 0.3);
+      --font-head: 'Orbitron', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --glass-bg: rgba(18, 18, 26, 0.7);
+      --glass-border: rgba(0, 255, 242, 0.15);
+    }
+
     body {
-      background: #fff0f5;
-      color: #4a3040;
-      font-family: 'Quicksand', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 14px;
       min-height: 100vh;
       overflow-x: hidden;
+      position: relative;
     }
 
-    /* ── Floating characters ── */
-    .float-char {
+    /* ── Scanline overlay ── */
+    body::after {
+      content: '';
       position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 255, 242, 0.015) 2px,
+        rgba(0, 255, 242, 0.015) 4px
+      );
+      pointer-events: none;
+      z-index: 99999;
+    }
+
+    /* ── Grid background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        linear-gradient(rgba(0, 255, 242, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 242, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
       pointer-events: none;
       z-index: 0;
-      image-rendering: pixelated;
-      opacity: 0.12;
     }
 
-    /* ── Password Gate ── */
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; text-shadow: var(--glow-cyan); }
+
+    ::selection { background: var(--secondary); color: var(--bg); }
+
+    /* ═══════════════════════════════════════════════════
+       GLITCH ANIMATION
+       ═══════════════════════════════════════════════════ */
+    @keyframes glitch {
+      0% { text-shadow: 2px 0 var(--secondary), -2px 0 var(--primary); }
+      20% { text-shadow: -2px 2px var(--secondary), 2px -2px var(--primary); }
+      40% { text-shadow: 2px -2px var(--secondary), -2px 2px var(--primary); }
+      60% { text-shadow: -2px 0 var(--secondary), 2px 0 var(--primary); }
+      80% { text-shadow: 0 2px var(--secondary), 0 -2px var(--primary); }
+      100% { text-shadow: 2px 0 var(--secondary), -2px 0 var(--primary); }
+    }
+
+    @keyframes glitchSlice {
+      0%, 100% { clip-path: inset(0 0 95% 0); transform: translate(0); }
+      10% { clip-path: inset(20% 0 60% 0); transform: translate(-4px, 0); }
+      20% { clip-path: inset(50% 0 30% 0); transform: translate(4px, 0); }
+      30% { clip-path: inset(10% 0 70% 0); transform: translate(-2px, 0); }
+      40% { clip-path: inset(80% 0 5% 0); transform: translate(2px, 0); }
+      50% { clip-path: inset(30% 0 50% 0); transform: translate(-4px, 0); }
+      60% { clip-path: inset(70% 0 15% 0); transform: translate(4px, 0); }
+      70% { clip-path: inset(5% 0 85% 0); transform: translate(-2px, 0); }
+      80% { clip-path: inset(40% 0 40% 0); transform: translate(2px, 0); }
+      90% { clip-path: inset(60% 0 25% 0); transform: translate(-4px, 0); }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       PULSE / GLOW ANIMATIONS
+       ═══════════════════════════════════════════════════ */
+    @keyframes pulse-border {
+      0%, 100% { border-color: rgba(0, 255, 242, 0.3); }
+      50% { border-color: rgba(0, 255, 242, 0.7); }
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 242, 0.1); }
+      50% { box-shadow: 0 0 20px rgba(0, 255, 242, 0.3), 0 0 40px rgba(0, 255, 242, 0.1); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes neonPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    @keyframes scanline {
+      0% { top: -5%; }
+      100% { top: 105%; }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       PASSWORD GATE
+       ═══════════════════════════════════════════════════ */
     #gate {
       display: flex;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: linear-gradient(135deg, #fff0f5 0%, #f0e6ff 50%, #e6f7ff 100%);
+      background: var(--bg);
       position: relative;
+      z-index: 10;
     }
-    .gate-chars {
+
+    .gate-scanline {
       position: absolute;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0.5;
+      animation: scanline 4s linear infinite;
       pointer-events: none;
+    }
+
+    .gate-box {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 4px;
+      padding: 48px 40px;
+      width: 440px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      animation: pulse-border 3s ease-in-out infinite;
+    }
+
+    .gate-box::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: 20%; right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    }
+
+    .gate-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      animation: float 3s ease-in-out infinite;
+      filter: drop-shadow(0 0 10px rgba(0, 255, 242, 0.5));
+    }
+
+    .gate-box h1 {
+      font-family: var(--font-head);
+      font-size: 22px;
+      color: var(--primary);
+      margin-bottom: 6px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .gate-box h1::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      animation: glitchSlice 3s infinite linear alternate-reverse;
+      opacity: 0.8;
+    }
+
+    .gate-box .subtitle {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 28px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .gate-box input {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--primary);
+      font-size: 16px;
+      font-family: var(--font-mono);
+      outline: none;
+      margin-bottom: 16px;
+      text-align: center;
+      letter-spacing: 8px;
+      transition: all 0.3s;
+    }
+
+    .gate-box input:focus {
+      border-color: var(--primary);
+      box-shadow: var(--glow-cyan), inset 0 0 20px rgba(0, 255, 242, 0.05);
+    }
+
+    .gate-box input::placeholder { color: var(--text-dim); letter-spacing: 4px; }
+
+    .gate-box button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border: none;
+      border-radius: 2px;
+      color: var(--bg);
+      font-weight: 700;
+      font-size: 14px;
+      font-family: var(--font-head);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
       overflow: hidden;
     }
-    .gate-char {
+
+    .gate-box button::before {
+      content: '';
       position: absolute;
-      image-rendering: pixelated;
-      animation: float 6s ease-in-out infinite;
+      top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
     }
-    @keyframes float {
-      0%, 100% { transform: translateY(0) rotate(-3deg); }
-      50% { transform: translateY(-15px) rotate(3deg); }
+
+    .gate-box button:hover::before { left: 100%; }
+    .gate-box button:hover { transform: translateY(-2px); box-shadow: var(--glow-cyan), var(--glow-magenta); }
+
+    .gate-error {
+      color: #ff4444;
+      font-size: 12px;
+      margin-top: 10px;
+      display: none;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
-    .gate-box {
-      background: white;
-      border-radius: 28px;
-      padding: 48px 40px;
-      width: 420px;
-      text-align: center;
-      box-shadow: 0 8px 40px rgba(255, 150, 180, 0.2);
-      border: 2px solid #ffd6e8;
+
+    /* ═══════════════════════════════════════════════════
+       HEADER
+       ═══════════════════════════════════════════════════ */
+    #app { display: none; min-height: 100vh; background: var(--bg); position: relative; z-index: 1; }
+
+    .header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .header .logo { display: flex; align-items: center; gap: 12px; }
+    .header .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+
+    .header h1 {
+      font-family: var(--font-head);
+      font-size: 16px;
+      color: var(--primary);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .header .badge {
+      font-size: 10px;
+      color: var(--secondary);
+      background: rgba(255, 0, 255, 0.1);
+      border: 1px solid rgba(255, 0, 255, 0.3);
+      padding: 5px 12px;
+      border-radius: 2px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      animation: neonPulse 2s ease-in-out infinite;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 20px;
       position: relative;
       z-index: 1;
     }
-    .gate-kitty { font-size: 72px; margin-bottom: 8px; animation: bounce 2s ease-in-out infinite; }
-    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-    .gate-box h1 { font-family: 'Fredoka', sans-serif; font-size: 24px; color: #e75480; margin-bottom: 4px; }
-    .gate-box .subtitle { font-size: 13px; color: #c9a0b0; margin-bottom: 28px; }
-    .gate-box input {
-      width: 100%; padding: 14px 18px; background: #fff5f8;
-      border: 2px solid #ffd6e8; border-radius: 14px; color: #4a3040;
-      font-size: 14px; font-family: 'Quicksand', sans-serif; outline: none;
-      margin-bottom: 16px; text-align: center; letter-spacing: 4px;
-    }
-    .gate-box input:focus { border-color: #ff80ab; box-shadow: 0 0 0 3px rgba(255, 128, 171, 0.15); }
-    .gate-box button {
-      width: 100%; padding: 14px;
-      background: linear-gradient(135deg, #ff80ab, #f48fb1);
-      border: none; border-radius: 14px; color: white;
-      font-weight: 700; font-size: 15px; font-family: 'Fredoka', sans-serif;
-      cursor: pointer; transition: all 0.3s;
-      box-shadow: 0 4px 15px rgba(255, 128, 171, 0.4);
-    }
-    .gate-box button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 128, 171, 0.5); }
-    .gate-error { color: #e75480; font-size: 12px; margin-top: 10px; display: none; font-weight: 600; }
 
-    /* ── Main App ── */
-    #app { display: none; min-height: 100vh; background: linear-gradient(180deg, #fff0f5 0%, #f8f0ff 100%); position: relative; }
-    .header {
-      background: white; border-bottom: 2px solid #ffd6e8;
-      padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 2px 10px rgba(255, 150, 180, 0.1);
-      position: sticky; top: 0; z-index: 10;
-    }
-    .header .logo { display: flex; align-items: center; gap: 10px; }
-    .header .logo-icon {
-      width: 38px; height: 38px;
-      background: linear-gradient(135deg, #ff80ab, #ce93d8);
-      border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;
-    }
-    .header h1 { font-family: 'Fredoka', sans-serif; font-size: 18px; color: #e75480; }
-    .header .badge {
-      font-size: 11px; color: #c9a0b0; background: #fff5f8;
-      border: 1px solid #ffd6e8; padding: 5px 12px; border-radius: 20px; font-weight: 600;
-    }
-    .container { max-width: 680px; margin: 28px auto; padding: 0 20px; position: relative; z-index: 1; }
-    .card {
-      background: white; border-radius: 20px; padding: 24px 28px;
-      margin-bottom: 18px; box-shadow: 0 4px 20px rgba(255, 150, 180, 0.1);
-      border: 1.5px solid #ffd6e8; position: relative;
-    }
-    .card .char-deco {
-      position: absolute; top: -16px; right: 20px; font-size: 32px;
-      image-rendering: pixelated; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-    }
-    .card h2 {
-      font-family: 'Fredoka', sans-serif; font-size: 15px; color: #e75480;
-      margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
-    }
-    .card h2 .icon {
-      width: 28px; height: 28px; background: #fff0f5; border-radius: 8px;
-      display: flex; align-items: center; justify-content: center; font-size: 14px;
-    }
-    .form-group { margin-bottom: 13px; }
-    .form-group label {
-      display: block; font-size: 11px; color: #b07090;
-      margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-    }
-    .form-group input, .form-group select {
-      width: 100%; padding: 10px 14px; background: #fff8fa;
-      border: 1.5px solid #ffd6e8; border-radius: 12px; color: #4a3040;
-      font-size: 13px; outline: none; font-family: 'Quicksand', sans-serif; transition: all 0.2s;
-    }
-    .form-group input:focus, .form-group select:focus {
-      border-color: #ff80ab; box-shadow: 0 0 0 3px rgba(255, 128, 171, 0.1);
-    }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-    .btn-deploy {
-      width: 100%; padding: 16px;
-      background: linear-gradient(135deg, #ff80ab, #ce93d8);
-      border: none; border-radius: 16px; color: white; font-weight: 700; font-size: 16px;
-      font-family: 'Fredoka', sans-serif; cursor: pointer; transition: all 0.3s; margin-top: 8px;
-      box-shadow: 0 4px 20px rgba(255, 128, 171, 0.4);
-    }
-    .btn-deploy:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(255, 128, 171, 0.5); }
-    .btn-deploy:disabled { background: #e0d0d8; box-shadow: none; cursor: not-allowed; transform: none; }
-
-    /* ── Network warning ── */
-    .network-warning {
-      display: none; padding: 10px 14px; background: #fff3e0; border: 1.5px solid #ffcc80;
-      border-radius: 12px; margin-bottom: 12px; font-size: 12px; color: #e65100; font-weight: 600;
-      align-items: center; gap: 8px;
-    }
-    .network-warning.show { display: flex; }
-    .btn-switch-network {
-      padding: 6px 14px; background: #ff9800; border: none; border-radius: 8px;
-      color: white; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;
-      font-family: 'Fredoka', sans-serif; transition: all 0.2s;
-    }
-    .btn-switch-network:hover { background: #f57c00; }
-
-    /* ── Result ── */
-    #result {
-      display: none; background: white; border-radius: 20px;
-      padding: 24px 28px; margin-top: 18px;
-      border: 2px solid #a5d6a7; box-shadow: 0 4px 20px rgba(165, 214, 167, 0.2);
-    }
-    #result h2 {
-      font-family: 'Fredoka', sans-serif; font-size: 15px; color: #66bb6a;
-      margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
-    }
-    .result-row {
-      display: flex; justify-content: space-between; padding: 9px 0;
-      border-bottom: 1px solid #f0e8f0; font-size: 13px;
-    }
-    .result-row:last-child { border-bottom: none; }
-    .result-label { color: #b07090; font-weight: 600; }
-    .result-value {
-      color: #4a3040; font-family: monospace; word-break: break-all;
-      text-align: right; max-width: 60%; font-size: 12px;
-    }
-    .result-value a { color: #e75480; text-decoration: none; font-weight: 600; }
-    .result-value a:hover { text-decoration: underline; }
-
-    #error-box {
-      display: none; background: #fff5f5; border: 2px solid #ffcdd2;
-      border-radius: 20px; padding: 20px; margin-top: 18px;
-    }
-    #error-box strong { color: #e75480; font-family: 'Fredoka', sans-serif; font-size: 14px; }
-    #error-msg { color: #c06070; font-size: 11px; margin-top: 8px; white-space: pre-wrap; font-family: monospace; }
-
-    .spinner {
-      display: inline-block; width: 18px; height: 18px;
-      border: 3px solid white; border-top-color: transparent;
-      border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── Preview Modal ── */
-    .preview-overlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255, 240, 245, 0.7); backdrop-filter: blur(6px);
-      display: flex; align-items: center; justify-content: center; z-index: 9999;
-    }
-    .preview-modal {
-      background: white; border-radius: 20px; width: 480px; max-width: 92vw;
-      max-height: 85vh; overflow: hidden;
-      box-shadow: 0 12px 50px rgba(255, 128, 171, 0.25); border: 1.5px solid #ffd6e8;
-    }
-    .preview-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 18px 22px 14px; border-bottom: 1px solid #fff0f5;
-    }
-    .preview-header h3 {
-      font-family: 'Fredoka', sans-serif; font-size: 16px; color: #e75480; margin: 0;
-    }
-    .preview-close {
-      width: 30px; height: 30px; border: none; background: #fff5f8;
-      border-radius: 50%; color: #c9a0b0; font-size: 16px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .preview-close:hover { background: #ffe0ea; color: #e75480; }
-    .preview-body { padding: 16px 22px 22px; overflow-y: auto; max-height: 60vh; }
-    .preview-row {
-      display: flex; justify-content: space-between; padding: 8px 0;
-      border-bottom: 1px solid #fff0f5; font-size: 13px;
-    }
-    .preview-row:last-child { border-bottom: none; }
-    .preview-label { color: #b07090; font-weight: 600; }
-    .preview-value { color: #4a3040; font-family: monospace; font-size: 12px; text-align: right; max-width: 60%; word-break: break-all; }
-    .preview-footer { padding: 14px 22px; border-top: 1px solid #fff0f5; display: flex; gap: 10px; }
-    .preview-btn {
-      flex: 1; padding: 12px; border: none; border-radius: 12px;
-      font-family: 'Fredoka', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-    }
-    .preview-btn-cancel {
-      background: #fff5f8; color: #c9a0b0; border: 1.5px solid #ffd6e8;
-    }
-    .preview-btn-cancel:hover { background: #ffe0ea; color: #e75480; }
-    .preview-btn-confirm {
-      background: linear-gradient(135deg, #ff80ab, #ce93d8); color: white;
-      box-shadow: 0 4px 15px rgba(255, 128, 171, 0.35);
-    }
-    .preview-btn-confirm:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255, 128, 171, 0.45); }
-    .preview-btn-confirm:disabled { background: #e0d0d8; box-shadow: none; cursor: not-allowed; transform: none; }
-
-    .footer {
-      text-align: center; padding: 24px; font-size: 12px;
-      color: #d4a0b8; font-weight: 500; position: relative; z-index: 1;
-    }
-    .footer span { color: #ff80ab; }
-    .char-row { display: flex; justify-content: center; gap: 24px; padding: 16px 0; opacity: 0.15; pointer-events: none; }
-    .char-row span { font-size: 40px; image-rendering: pixelated; }
-
-    /* ── Tab System ── */
+    /* ═══════════════════════════════════════════════════
+       TAB BAR
+       ═══════════════════════════════════════════════════ */
     .tab-bar {
-      display: flex; flex-direction: row; align-items: center; justify-content: center;
-      gap: 8px; margin-top: 16px; margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      margin: 16px 0 8px;
+      position: relative;
     }
+
+    .tab-bar::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 10%; right: 10%;
+      height: 1px;
+      background: var(--border);
+    }
+
     .tab-btn {
-      padding: 10px 28px; border-radius: 14px; cursor: pointer;
-      font-family: 'Fredoka', sans-serif; font-size: 14px; font-weight: 700;
-      border: 1.5px solid #ffd6e8; background: white; color: #e75480;
+      padding: 12px 32px;
+      cursor: pointer;
+      font-family: var(--font-head);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      transition: all 0.3s;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tab-btn:hover { color: var(--text); }
+
+    .tab-btn.active {
+      color: var(--primary);
+    }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 20%; right: 20%;
+      height: 2px;
+      background: var(--primary);
+      box-shadow: var(--glow-cyan);
+      border-radius: 2px;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeIn 0.3s ease-out; }
+
+    /* ═══════════════════════════════════════════════════
+       CARDS — Glassmorphism + Neon Border
+       ═══════════════════════════════════════════════════ */
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 4px;
+      padding: 24px 28px;
+      margin-bottom: 16px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0.5;
+    }
+
+    .card:hover {
+      border-color: rgba(0, 255, 242, 0.3);
+      box-shadow: 0 0 30px rgba(0, 255, 242, 0.05);
+    }
+
+    .card h2 {
+      font-family: var(--font-head);
+      font-size: 13px;
+      color: var(--primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .card h2 .icon {
+      width: 28px; height: 28px;
+      background: rgba(0, 255, 242, 0.1);
+      border: 1px solid rgba(0, 255, 242, 0.2);
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       FORM ELEMENTS
+       ═══════════════════════════════════════════════════ */
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-family: var(--font-head);
+    }
+
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+      font-family: var(--font-mono);
       transition: all 0.3s;
     }
-    .tab-btn:hover { background: #fff5f8; }
-    .tab-btn.active {
-      background: linear-gradient(135deg, #ff80ab, #ce93d8);
-      color: white; border-color: transparent;
-      box-shadow: 0 4px 15px rgba(255, 128, 171, 0.35);
-    }
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
 
-    /* ── Reveal Status Grid ── */
-    .reveal-status {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--primary);
+      box-shadow: var(--glow-cyan);
     }
+
+    .form-group input::placeholder { color: var(--text-dim); }
+
+    .form-group select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300fff2' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    .form-group select option {
+      background: var(--bg-card);
+      color: var(--text);
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* ═══════════════════════════════════════════════════
+       BUTTONS
+       ═══════════════════════════════════════════════════ */
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border: none;
+      border-radius: 2px;
+      color: var(--bg);
+      font-weight: 700;
+      font-size: 14px;
+      font-family: var(--font-head);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn-primary:hover::before { left: 100%; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--glow-cyan), var(--glow-magenta); }
+    .btn-primary:disabled {
+      background: linear-gradient(135deg, #333, #444);
+      color: #666;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      border: 1px solid var(--primary);
+      border-radius: 2px;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 12px;
+      font-family: var(--font-head);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(0, 255, 242, 0.1);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .btn-secondary:disabled {
+      border-color: #333;
+      color: #555;
+      cursor: not-allowed;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       NETWORK WARNING
+       ═══════════════════════════════════════════════════ */
+    .network-warning {
+      display: none;
+      padding: 10px 14px;
+      background: rgba(255, 200, 0, 0.1);
+      border: 1px solid rgba(255, 200, 0, 0.3);
+      border-radius: 2px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: var(--tertiary);
+      font-weight: 600;
+      align-items: center;
+      gap: 8px;
+    }
+    .network-warning.show { display: flex; }
+
+    .btn-switch-network {
+      padding: 6px 14px;
+      background: var(--tertiary);
+      border: none;
+      border-radius: 2px;
+      color: var(--bg);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: var(--font-head);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+    .btn-switch-network:hover { box-shadow: var(--glow-yellow); }
+
+    /* ═══════════════════════════════════════════════════
+       RESULT BOX
+       ═══════════════════════════════════════════════════ */
+    #result {
+      display: none;
+      background: var(--glass-bg);
+      border: 1px solid rgba(0, 255, 100, 0.3);
+      border-radius: 4px;
+      padding: 24px 28px;
+      margin-top: 16px;
+    }
+
+    #result h2 {
+      font-family: var(--font-head);
+      font-size: 13px;
+      color: #00ff64;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 13px;
+    }
+    .result-row:last-child { border-bottom: none; }
+    .result-label { color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 10px; }
+    .result-value { color: var(--text); font-family: var(--font-mono); word-break: break-all; text-align: right; max-width: 60%; font-size: 12px; }
+    .result-value a { color: var(--primary); font-weight: 600; }
+
+    /* ═══════════════════════════════════════════════════
+       ERROR BOX
+       ═══════════════════════════════════════════════════ */
+    #error-box {
+      display: none;
+      background: rgba(255, 0, 0, 0.05);
+      border: 1px solid rgba(255, 68, 68, 0.3);
+      border-radius: 4px;
+      padding: 20px;
+      margin-top: 16px;
+    }
+    #error-box strong { color: #ff4444; font-family: var(--font-head); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    #error-msg { color: #ff8888; font-size: 11px; margin-top: 8px; white-space: pre-wrap; font-family: var(--font-mono); }
+
+    /* ═══════════════════════════════════════════════════
+       SPINNER
+       ═══════════════════════════════════════════════════ */
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(10, 10, 15, 0.3);
+      border-top-color: var(--bg);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       PREVIEW MODAL
+       ═══════════════════════════════════════════════════ */
+    .preview-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .preview-modal {
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: 4px;
+      width: 500px;
+      max-width: 92vw;
+      max-height: 85vh;
+      overflow: hidden;
+      animation: slideUp 0.3s ease-out;
+      box-shadow: 0 0 60px rgba(0, 255, 242, 0.1);
+    }
+
+    .preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .preview-header h3 {
+      font-family: var(--font-head);
+      font-size: 13px;
+      color: var(--primary);
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .preview-close {
+      width: 30px; height: 30px;
+      border: 1px solid var(--border);
+      background: transparent;
+      border-radius: 2px;
+      color: var(--text-dim);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .preview-close:hover { border-color: var(--secondary); color: var(--secondary); }
+
+    .preview-body { padding: 16px 22px 22px; overflow-y: auto; max-height: 55vh; }
+
+    .preview-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      font-size: 13px;
+    }
+    .preview-row:last-child { border-bottom: none; }
+    .preview-label { color: var(--text-dim); font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
+    .preview-value { color: var(--text); font-family: var(--font-mono); font-size: 12px; text-align: right; max-width: 60%; word-break: break-all; }
+
+    .preview-footer {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+    }
+
+    .preview-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 2px;
+      font-family: var(--font-head);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preview-btn-cancel {
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+    .preview-btn-cancel:hover { border-color: var(--text-dim); color: var(--text); }
+
+    .preview-btn-confirm {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: var(--bg);
+    }
+    .preview-btn-confirm:hover { box-shadow: var(--glow-cyan); transform: translateY(-1px); }
+
+    /* ═══════════════════════════════════════════════════
+       REVEAL STATUS GRID
+       ═══════════════════════════════════════════════════ */
+    .reveal-status { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .reveal-status-item {
-      padding: 10px 12px; border-radius: 10px;
-      background: #fff8fa; border: 1px solid #ffd6e8;
+      padding: 12px;
+      border-radius: 2px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
     }
     .reveal-status-label {
-      font-size: 10px; color: #b07090; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.5px;
+      font-size: 9px;
+      color: var(--text-dim);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-family: var(--font-head);
+      margin-bottom: 4px;
     }
     .reveal-status-value {
-      font-size: 13px; font-family: monospace; word-break: break-all; color: #4a3040;
-    }
-    .reveal-preview-box {
-      background: #f8f8f8; border-radius: 10px; padding: 12px;
-      font-family: monospace; font-size: 12px; color: #4a3040;
-      margin-top: 8px; word-break: break-all;
-    }
-    .validate-result {
-      padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 6px;
-    }
-    .validate-ok {
-      background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7;
-    }
-    .validate-fail {
-      background: #fff3e0; color: #e65100; border: 1px solid #ffcc80;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      word-break: break-all;
+      color: var(--text);
     }
 
+    .reveal-preview-box {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--primary);
+      margin-top: 8px;
+      word-break: break-all;
+    }
+
+    .validate-result {
+      padding: 8px 12px;
+      border-radius: 2px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-family: var(--font-mono);
+    }
+    .validate-ok { background: rgba(0, 255, 100, 0.1); color: #00ff64; border: 1px solid rgba(0, 255, 100, 0.2); }
+    .validate-fail { background: rgba(255, 68, 68, 0.1); color: #ff6666; border: 1px solid rgba(255, 68, 68, 0.2); }
+
+    /* ═══════════════════════════════════════════════════
+       STEP GUIDE
+       ═══════════════════════════════════════════════════ */
+    .guide-card {
+      background: rgba(255, 0, 255, 0.03);
+      border: 1px solid rgba(255, 0, 255, 0.15);
+      border-radius: 4px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+
+    .guide-card h3 {
+      font-family: var(--font-head);
+      font-size: 11px;
+      color: var(--secondary);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .guide-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-left: 2px solid var(--secondary);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .guide-step:last-child { margin-bottom: 0; }
+
+    .step-num {
+      width: 24px; height: 24px;
+      min-width: 24px;
+      background: var(--secondary);
+      color: var(--bg);
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-head);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .step-text {
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .step-text code {
+      background: rgba(0, 255, 242, 0.1);
+      color: var(--primary);
+      padding: 2px 6px;
+      border-radius: 2px;
+      font-size: 11px;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       TOAST NOTIFICATIONS
+       ═══════════════════════════════════════════════════ */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 14px 24px;
+      border-radius: 2px;
+      z-index: 100000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      animation: slideUp 0.3s ease-out;
+      max-width: 90vw;
+    }
+
+    .toast-success {
+      background: rgba(0, 255, 100, 0.1);
+      border: 1px solid rgba(0, 255, 100, 0.3);
+      color: #00ff64;
+      backdrop-filter: blur(10px);
+    }
+
+    .toast-error {
+      background: rgba(255, 0, 0, 0.1);
+      border: 1px solid rgba(255, 68, 68, 0.3);
+      color: #ff6666;
+      backdrop-filter: blur(10px);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       REFRESH TAB — SPECIAL STYLES
+       ═══════════════════════════════════════════════════ */
+    .refresh-links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .refresh-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text);
+      font-size: 13px;
+      transition: all 0.2s;
+      text-decoration: none !important;
+    }
+
+    .refresh-link:hover {
+      border-color: var(--primary);
+      background: rgba(0, 255, 242, 0.05);
+    }
+
+    .refresh-link .link-icon { font-size: 18px; }
+    .refresh-link .link-text { flex: 1; }
+    .refresh-link .link-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-head); }
+
+    .refresh-timer {
+      text-align: center;
+      padding: 16px;
+      background: rgba(240, 255, 0, 0.05);
+      border: 1px solid rgba(240, 255, 0, 0.15);
+      border-radius: 2px;
+      margin-top: 12px;
+    }
+
+    .refresh-timer .timer-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-family: var(--font-head);
+      margin-bottom: 4px;
+    }
+
+    .refresh-timer .timer-value {
+      font-size: 24px;
+      font-family: var(--font-head);
+      color: var(--tertiary);
+      font-weight: 700;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       FOOTER
+       ═══════════════════════════════════════════════════ */
+    .footer {
+      text-align: center;
+      padding: 32px 20px;
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: 500;
+      position: relative;
+      z-index: 1;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: var(--font-head);
+    }
+
+    .footer span { color: var(--primary); }
+
+    .deco-line {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: 20px 0;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .deco-dot {
+      width: 4px; height: 4px;
+      background: var(--primary);
+      border-radius: 50%;
+    }
+
+    .deco-line-bar {
+      width: 40px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       NETWORK CARD GRID
+       ═══════════════════════════════════════════════════ */
+    .network-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .network-card {
+      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .network-card:hover { border-color: var(--primary); background: rgba(0, 255, 242, 0.03); }
+    .network-card.selected { border-color: var(--primary); box-shadow: var(--glow-cyan); background: rgba(0, 255, 242, 0.05); }
+
+    .network-card .nc-name { font-size: 12px; font-weight: 600; color: var(--text); }
+    .network-card .nc-chain { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+
+    .network-card .nc-badge {
+      font-size: 9px;
+      padding: 3px 8px;
+      border-radius: 2px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-family: var(--font-head);
+    }
+
+    .nc-badge-testnet { background: rgba(255, 200, 0, 0.15); color: var(--tertiary); }
+    .nc-badge-mainnet { background: rgba(0, 255, 100, 0.15); color: #00ff64; }
+
+    /* ═══════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════ */
     @media (max-width: 500px) {
       .gate-box { width: 92%; padding: 36px 24px; }
       .form-row { grid-template-columns: 1fr; }
-      .header h1 { font-size: 14px; }
-      .gate-char { display: none; }
-      .preview-modal { border-radius: 16px; }
-      .tab-btn { padding: 8px 20px; font-size: 13px; }
+      .header h1 { font-size: 13px; }
+      .tab-btn { padding: 10px 20px; font-size: 10px; }
+      .preview-modal { border-radius: 2px; }
+      .network-grid { grid-template-columns: 1fr; }
+      .reveal-status { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <!-- PASSWORD GATE -->
+  <!-- ═══════════════════════════════════════════════════
+       PASSWORD GATE
+       ═══════════════════════════════════════════════════ -->
   <div id="gate">
-    <div class="gate-chars">
-      <div class="gate-char" style="top:8%;left:8%;">
-        <svg width="64" height="64" viewBox="0 0 16 16" style="image-rendering:pixelated">
-          <rect x="5" y="1" width="1" height="1" fill="#ff80ab"/><rect x="6" y="1" width="1" height="1" fill="#ff80ab"/>
-          <rect x="4" y="2" width="1" height="1" fill="#ff80ab"/><rect x="5" y="2" width="1" height="1" fill="#fff"/><rect x="6" y="2" width="1" height="1" fill="#fff"/><rect x="7" y="2" width="1" height="1" fill="#ff80ab"/>
-          <rect x="3" y="3" width="5" height="1" fill="#fff"/>
-          <rect x="3" y="4" width="1" height="1" fill="#fff"/><rect x="4" y="4" width="1" height="1" fill="#fff"/><rect x="5" y="4" width="1" height="1" fill="#333"/><rect x="6" y="4" width="1" height="1" fill="#fff"/><rect x="7" y="4" width="1" height="1" fill="#333"/><rect x="8" y="4" width="1" height="1" fill="#fff"/>
-          <rect x="3" y="5" width="6" height="1" fill="#fff"/>
-          <rect x="4" y="6" width="4" height="1" fill="#fff"/>
-          <rect x="5" y="7" width="2" height="1" fill="#fff"/>
-        </svg>
-      </div>
-      <div class="gate-char" style="top:15%;right:10%;">
-        <svg width="64" height="64" viewBox="0 0 16 16" style="image-rendering:pixelated">
-          <rect x="3" y="3" width="8" height="2" fill="#66bb6a"/>
-          <rect x="4" y="5" width="6" height="1" fill="#66bb6a"/>
-          <rect x="5" y="6" width="4" height="1" fill="#66bb6a"/>
-        </svg>
-      </div>
-      <div class="gate-char" style="bottom:18%;left:10%;">
-        <svg width="64" height="64" viewBox="0 0 16 16" style="image-rendering:pixelated">
-          <rect x="4" y="3" width="7" height="3" fill="#333"/>
-          <rect x="5" y="7" width="5" height="1" fill="#fff"/>
-        </svg>
-      </div>
-      <div class="gate-char" style="bottom:12%;right:10%;">
-        <svg width="64" height="64" viewBox="0 0 16 16" style="image-rendering:pixelated">
-          <rect x="5" y="2" width="4" height="1" fill="#ffd740"/>
-          <rect x="3" y="3" width="8" height="3" fill="#ffd740"/>
-          <rect x="4" y="6" width="6" height="1" fill="#ffd740"/>
-        </svg>
-      </div>
-      <div class="gate-char" style="top:50%;left:4%;">
-        <svg width="64" height="64" viewBox="0 0 16 16" style="image-rendering:pixelated">
-          <rect x="4" y="2" width="8" height="4" fill="#fff"/>
-          <rect x="5" y="6" width="6" height="1" fill="#fff"/>
-        </svg>
-      </div>
-      <div class="gate-char" style="top:45%;right:5%;">
-        <svg width="64" height="64" viewBox="0 0 16 16" style="image-rendering:pixelated">
-          <rect x="4" y="3" width="8" height="3" fill="#e3f2fd"/>
-          <rect x="5" y="6" width="6" height="1" fill="#e3f2fd"/>
-        </svg>
-      </div>
-    </div>
-
+    <div class="gate-scanline"></div>
     <div class="gate-box">
-      <div class="gate-kitty">🎀</div>
-      <h1>NFT Deploy Tool</h1>
-      <p class="subtitle">Enter password to continue ♡</p>
+      <div class="gate-icon">⬡</div>
+      <h1 data-text="NFT Deploy">NFT Deploy</h1>
+      <p class="subtitle">Multi-chain contract deployment tool</p>
       <input type="password" id="pw-input" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()">
-      <button onclick="doLogin()">Enter ♡</button>
-      <div class="gate-error" id="gate-error">Wrong password ♡</div>
+      <button onclick="doLogin()">Initialize ▸</button>
+      <div class="gate-error" id="gate-error">ACCESS DENIED</div>
     </div>
   </div>
 
-  <!-- MAIN APP -->
+  <!-- ═══════════════════════════════════════════════════
+       MAIN APP
+       ═══════════════════════════════════════════════════ -->
   <div id="app">
     <div class="header">
       <div class="logo">
-        <div class="logo-icon">🐱</div>
+        <div class="logo-icon">⬡</div>
         <h1>NFT Deploy</h1>
       </div>
-      <span class="badge">✿ Multi-Chain</span>
+      <span class="badge">Multi-Chain</span>
     </div>
 
     <!-- Tab Bar -->
     <div class="container" style="margin-top:12px;">
       <div class="tab-bar">
-        <button class="tab-btn active" onclick="switchTab('deploy')">✨ Deploy</button>
-        <button class="tab-btn" onclick="switchTab('reveal')">🔓 Reveal</button>
+        <button class="tab-btn active" onclick="switchTab('deploy')">Deploy</button>
+        <button class="tab-btn" onclick="switchTab('reveal')">Reveal</button>
+        <button class="tab-btn" onclick="switchTab('refresh')">Refresh</button>
       </div>
     </div>
 
-    <!-- ═══ DEPLOY PANEL ═══ -->
+    <!-- ═══════════════════════════════════════════════════
+         DEPLOY PANEL
+         ═══════════════════════════════════════════════════ -->
     <div id="deploy-panel" class="container tab-panel active">
-      <!-- Wallet Connect -->
-      <div class="card" id="wallet-card">
-        <div class="char-deco">🦊</div>
-        <h2><span class="icon">🔐</span> Wallet</h2>
+
+      <!-- Wallet -->
+      <div class="card">
+        <h2><span class="icon">◈</span> Wallet</h2>
         <div id="wallet-status"></div>
       </div>
 
       <!-- Network -->
       <div class="card">
-        <div class="char-deco">🐸</div>
-        <h2><span class="icon">🌐</span> Network</h2>
+        <h2><span class="icon">◎</span> Network</h2>
         <div id="network-warning" class="network-warning">
-          <span>⚠️</span>
+          <span>⚠</span>
           <span id="network-warning-text">Wrong network</span>
           <button class="btn-switch-network" id="btn-switch-network" onclick="switchToSelectedNetwork()">Switch</button>
         </div>
@@ -415,15 +1137,14 @@
 
       <!-- Collection -->
       <div class="card">
-        <div class="char-deco">🐧</div>
-        <h2><span class="icon">💎</span> Collection</h2>
+        <h2><span class="icon">◆</span> Collection</h2>
         <div class="form-group">
           <label>Collection Name *</label>
           <input type="text" id="name" placeholder="My NFT Collection">
         </div>
         <div class="form-group">
           <label>Symbol *</label>
-          <input type="text" id="symbol" placeholder="MNC" style="width: 140px;">
+          <input type="text" id="symbol" placeholder="MNC" style="width:140px;">
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -437,18 +1158,13 @@
         </div>
         <div class="form-group">
           <label>Max Mint Per Wallet *</label>
-          <input type="number" id="perWallet" value="5" min="1" style="width: 140px;">
-        </div>
-        <div class="form-group">
-          <label>Creator Fee % (optional)</label>
-          <input type="number" id="royaltyFee" value="0" min="0" max="50" step="0.5" style="width: 140px;">
+          <input type="number" id="perWallet" value="5" min="1" style="width:140px;">
         </div>
       </div>
 
       <!-- Metadata -->
       <div class="card">
-        <div class="char-deco">🐻</div>
-        <h2><span class="icon">🏷️</span> Metadata</h2>
+        <h2><span class="icon">◇</span> Metadata</h2>
         <div class="form-group">
           <label>Hidden URI (pre-reveal)</label>
           <input type="text" id="hiddenUri" placeholder="https://example.com/hidden.json">
@@ -459,11 +1175,11 @@
         </div>
       </div>
 
-      <button class="btn-deploy" id="btn-deploy" onclick="doDeploy()">✨ Deploy Contract ✨</button>
+      <button class="btn-primary" id="btn-deploy" onclick="doDeploy()">▸ Deploy Contract</button>
 
       <!-- Result -->
       <div id="result">
-        <h2>🎉 Deployed Successfully!</h2>
+        <h2>✓ Deployed Successfully</h2>
         <div class="result-row">
           <span class="result-label">Network</span>
           <span class="result-value" id="r-network"></span>
@@ -488,30 +1204,59 @@
 
       <!-- Error -->
       <div id="error-box">
-        <strong>😿 Deploy Failed</strong>
+        <strong>✖ Deploy Failed</strong>
         <pre id="error-msg"></pre>
       </div>
 
-      <div class="char-row">
-        <span>🐱</span><span>🐸</span><span>🐧</span><span>🐻</span><span>🐰</span><span>🐶</span>
+      <!-- Guide -->
+      <div class="guide-card">
+        <h3>▸ How to deploy your NFT collection</h3>
+        <div class="guide-step">
+          <div class="step-num">1</div>
+          <div class="step-text">Connect your EVM wallet (MetaMask, Rabby, WalletConnect) using the wallet section above.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">2</div>
+          <div class="step-text">Select the target blockchain from the network dropdown. Make sure your wallet is on the matching network.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">3</div>
+          <div class="step-text">Fill in your collection name, symbol, max supply, and mint price. Set max per wallet limit.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">4</div>
+          <div class="step-text">Enter your <code>Hidden URI</code> (placeholder metadata shown before reveal) and <code>Base URI</code> (real metadata URL).</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">5</div>
+          <div class="step-text">Click <code>Deploy Contract</code> and review the transaction preview. Confirm in your wallet to deploy.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">6</div>
+          <div class="step-text">After deployment, save your contract address. Use the Reveal tab to reveal your collection on OpenSea.</div>
+        </div>
+      </div>
+
+      <div class="deco-line">
+        <div class="deco-line-bar"></div><div class="deco-dot"></div><div class="deco-line-bar"></div>
       </div>
     </div>
 
-    <!-- ═══ REVEAL PANEL ═══ -->
+    <!-- ═══════════════════════════════════════════════════
+         REVEAL PANEL
+         ═══════════════════════════════════════════════════ -->
     <div id="reveal-panel" class="container tab-panel">
-      <!-- Wallet Connect (shared) -->
+      <!-- Wallet -->
       <div class="card">
-        <div class="char-deco">🦊</div>
-        <h2><span class="icon">🔐</span> Wallet</h2>
+        <h2><span class="icon">◈</span> Wallet</h2>
         <div id="reveal-wallet-status"></div>
       </div>
 
       <!-- Network -->
       <div class="card">
-        <div class="char-deco">🐸</div>
-        <h2><span class="icon">🌐</span> Network</h2>
+        <h2><span class="icon">◎</span> Network</h2>
         <div id="reveal-network-warning" class="network-warning">
-          <span>⚠️</span>
+          <span>⚠</span>
           <span id="reveal-network-warning-text">Wrong network</span>
           <button class="btn-switch-network" onclick="switchRevealToSelectedNetwork()">Switch</button>
         </div>
@@ -523,19 +1268,17 @@
 
       <!-- Contract -->
       <div class="card">
-        <div class="char-deco">📄</div>
-        <h2><span class="icon">📜</span> Contract</h2>
+        <h2><span class="icon">◇</span> Contract</h2>
         <div class="form-group">
           <label>Contract Address *</label>
           <input type="text" id="reveal-contract" placeholder="0x...">
         </div>
-        <button class="btn-deploy" id="btn-read-status" onclick="readRevealStatus()">📖 Read Status</button>
+        <button class="btn-primary" id="btn-read-status" onclick="readRevealStatus()">▸ Read Contract Status</button>
       </div>
 
       <!-- Status (hidden until read) -->
       <div class="card" id="reveal-status-card" style="display:none;">
-        <div class="char-deco">🔍</div>
-        <h2><span class="icon">📊</span> Contract Status</h2>
+        <h2><span class="icon">◆</span> Contract State</h2>
         <div class="reveal-status">
           <div class="reveal-status-item">
             <div class="reveal-status-label">Revealed</div>
@@ -553,7 +1296,7 @@
             <div class="reveal-status-label">Base URI</div>
             <div class="reveal-status-value" id="rv-baseURI">—</div>
           </div>
-          <div class="reveal-status-item" style="grid-column: span 2;">
+          <div class="reveal-status-item" style="grid-column:span 2;">
             <div class="reveal-status-label">Hidden URI</div>
             <div class="reveal-status-value" id="rv-hiddenURI">—</div>
           </div>
@@ -561,13 +1304,13 @@
 
         <!-- tokenURI Preview -->
         <div style="margin-top:14px;">
-          <button class="btn-deploy" id="btn-toggle-preview" onclick="previewTokenURI()" style="font-size:13px;padding:10px;">🔍 Preview tokenURI</button>
+          <button class="btn-secondary" id="btn-toggle-preview" onclick="previewTokenURI()">▸ Preview tokenURI</button>
           <div id="preview-tokenuri-section" style="display:none;margin-top:10px;">
             <div class="form-group">
               <label>Token ID</label>
               <input type="number" id="preview-tokenid" value="1" min="0">
             </div>
-            <button class="btn-deploy" id="btn-do-preview" onclick="doPreviewTokenURI()" style="font-size:13px;padding:10px;">Look up</button>
+            <button class="btn-secondary" id="btn-do-preview" onclick="doPreviewTokenURI()">Look up</button>
             <div class="reveal-preview-box" id="preview-tokenuri-result" style="display:none;"></div>
           </div>
         </div>
@@ -575,29 +1318,27 @@
 
       <!-- Reveal Form (hidden until status read) -->
       <div class="card" id="reveal-form-card" style="display:none;">
-        <div class="char-deco">🔓</div>
-        <h2><span class="icon">🔓</span> Reveal Collection</h2>
-        <div id="reveal-already-revealed" style="display:none;padding:12px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;color:#2e7d32;font-weight:600;font-size:13px;margin-bottom:12px;">
-          ✅ This collection has already been revealed!
+        <h2><span class="icon">◇</span> Reveal Collection</h2>
+        <div id="reveal-already-revealed" style="display:none;padding:12px;background:rgba(0,255,100,0.05);border:1px solid rgba(0,255,100,0.2);border-radius:2px;color:#00ff64;font-weight:600;font-size:12px;margin-bottom:12px;">
+          ✓ This collection has already been revealed!
         </div>
-        <div id="reveal-not-owner" style="display:none;padding:12px;background:#fff3e0;border:1px solid #ffcc80;border-radius:10px;color:#e65100;font-weight:600;font-size:13px;margin-bottom:12px;">
-          ⚠️ You are not the owner of this contract. Only the owner can reveal.
+        <div id="reveal-not-owner" style="display:none;padding:12px;background:rgba(255,200,0,0.05);border:1px solid rgba(255,200,0,0.2);border-radius:2px;color:var(--tertiary);font-weight:600;font-size:12px;margin-bottom:12px;">
+          ⚠ You are not the owner of this contract. Only the owner can reveal.
         </div>
         <div id="reveal-form-body">
           <div class="form-group">
             <label>New Base URI (post-reveal) *</label>
             <input type="text" id="reveal-new-base-uri" placeholder="https://example.com/metadata/">
           </div>
-          <button class="btn-deploy" id="btn-validate-reveal" onclick="validateRevealMetadata()" style="font-size:13px;padding:10px;margin-bottom:12px;">✅ Validate Metadata URLs</button>
+          <button class="btn-secondary" id="btn-validate-reveal" onclick="validateRevealMetadata()">▸ Validate Metadata URLs</button>
           <div id="reveal-validate-results"></div>
-          <button class="btn-deploy" id="btn-do-reveal" onclick="doReveal()" style="margin-top:8px;">🔓 Confirm Reveal</button>
+          <button class="btn-primary" id="btn-do-reveal" onclick="doReveal()" style="margin-top:8px;">▸ Confirm Reveal</button>
         </div>
       </div>
 
       <!-- Result (hidden until reveal succeeds) -->
       <div class="card" id="reveal-result-card" style="display:none;">
-        <div class="char-deco">🎉</div>
-        <h2><span class="icon">🎉</span> Reveal Successful!</h2>
+        <h2 style="color:#00ff64;">✓ Reveal Successful</h2>
         <div class="reveal-status">
           <div class="reveal-status-item" style="grid-column:span 2;">
             <div class="reveal-status-label">TX Hash</div>
@@ -608,44 +1349,161 @@
             <div class="reveal-status-value" id="reveal-r-explorer">—</div>
           </div>
         </div>
-        <button class="btn-deploy" onclick="refreshOpenSea()" style="margin-top:12px;font-size:13px;padding:10px;">🖼️ Refresh on OpenSea</button>
       </div>
 
       <!-- Error -->
-      <div id="reveal-error-box" style="display:none;background:#fff5f5;border:2px solid #ffcdd2;border-radius:20px;padding:20px;margin-top:18px;">
-        <strong style="color:#e75480;font-family:'Fredoka',sans-serif;font-size:14px;">😿 Reveal Failed</strong>
-        <pre id="reveal-error-msg" style="color:#c06070;font-size:11px;margin-top:8px;white-space:pre-wrap;font-family:monospace;"></pre>
+      <div id="reveal-error-box" style="display:none;background:rgba(255,0,0,0.05);border:1px solid rgba(255,68,68,0.3);border-radius:4px;padding:20px;margin-top:16px;">
+        <strong style="color:#ff4444;font-family:var(--font-head);font-size:12px;text-transform:uppercase;letter-spacing:1px;">✖ Reveal Failed</strong>
+        <pre id="reveal-error-msg" style="color:#ff8888;font-size:11px;margin-top:8px;white-space:pre-wrap;font-family:var(--font-mono);"></pre>
       </div>
 
-      <div class="char-row">
-        <span>🐱</span><span>🐸</span><span>🐧</span><span>🐻</span><span>🐰</span><span>🐶</span>
+      <!-- Guide -->
+      <div class="guide-card">
+        <h3>▸ How to reveal your NFT collection</h3>
+        <div class="guide-step">
+          <div class="step-num">1</div>
+          <div class="step-text">Connect the wallet that deployed the contract. Only the contract owner can reveal.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">2</div>
+          <div class="step-text">Select the same network where your contract is deployed from the dropdown.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">3</div>
+          <div class="step-text">Enter your contract address (0x...) and click <code>Read Contract Status</code> to verify current state.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">4</div>
+          <div class="step-text">Enter the new <code>Base URI</code> — this should be the IPFS URL or HTTPS URL pointing to your real metadata files (e.g., <code>ipfs://QmXXX/</code>).</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">5</div>
+          <div class="step-text">Optionally validate metadata URLs by clicking <code>Validate Metadata URLs</code> to check if token metadata files are accessible.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">6</div>
+          <div class="step-text">Click <code>Confirm Reveal</code> and approve the transaction in your wallet. This sets the real baseURI and marks the collection as revealed.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">7</div>
+          <div class="step-text">After reveal, use the Refresh tab to refresh metadata on OpenSea so collectors see the real artwork.</div>
+        </div>
+      </div>
+
+      <div class="deco-line">
+        <div class="deco-line-bar"></div><div class="deco-dot"></div><div class="deco-line-bar"></div>
       </div>
     </div>
 
-    <div class="footer">NFT Deploy Tool ♡ <span>Multi-Chain ERC721</span></div>
+    <!-- ═══════════════════════════════════════════════════
+         REFRESH PANEL
+         ═══════════════════════════════════════════════════ -->
+    <div id="refresh-panel" class="container tab-panel">
+
+      <!-- Collection URL Input -->
+      <div class="card">
+        <h2><span class="icon">◈</span> Collection Link</h2>
+        <div class="form-group">
+          <label>OpenSea Collection URL</label>
+          <input type="text" id="refresh-url" placeholder="https://opensea.io/collection/my-collection" oninput="parseRefreshUrl()">
+        </div>
+        <button class="btn-primary" id="btn-parse-refresh" onclick="parseRefreshUrl()">▸ Parse Collection</button>
+      </div>
+
+      <!-- Parsed Results (hidden until parsed) -->
+      <div class="card" id="refresh-results" style="display:none;">
+        <h2><span class="icon">◇</span> Collection Links</h2>
+
+        <div class="form-group">
+          <label>Collection Slug</label>
+          <input type="text" id="refresh-slug" readonly style="color:var(--primary);cursor:text;">
+        </div>
+
+        <div class="refresh-links" id="refresh-links-container">
+          <!-- Filled dynamically -->
+        </div>
+
+        <div class="refresh-timer" id="refresh-timer" style="display:none;">
+          <div class="timer-label">Estimated Refresh Time</div>
+          <div class="timer-value" id="refresh-eta">5-10 minutes</div>
+        </div>
+      </div>
+
+      <!-- Guide -->
+      <div class="guide-card">
+        <h3>▸ How to refresh metadata on OpenSea</h3>
+        <div class="guide-step">
+          <div class="step-num">1</div>
+          <div class="step-text">Paste your OpenSea collection URL in the field above and click <code>Parse Collection</code>.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">2</div>
+          <div class="step-text">Click the OpenSea link to open your collection page. If your collection was recently revealed, the images may still show placeholder art.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">3</div>
+          <div class="step-text">On the OpenSea collection page, click the <code>•••</code> (more options) menu in the top-right area.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">4</div>
+          <div class="step-text">Select <code>Refresh metadata</code> from the dropdown menu. OpenSea will queue a metadata refresh for your collection.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">5</div>
+          <div class="step-text">Wait approximately <code>5-10 minutes</code> for the refresh to complete. You can check back by viewing individual token pages.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">6</div>
+          <div class="step-text">For <strong>individual token refresh</strong>, visit the token page on OpenSea, click the <code>•••</code> menu, and select <code>Refresh metadata</code>.</div>
+        </div>
+      </div>
+
+      <!-- Additional Tips -->
+      <div class="guide-card">
+        <h3>▸ Quick Links &amp; Marketplaces</h3>
+        <div class="step-text" style="margin-bottom:8px;">
+          After reveal, you can also view and refresh your collection on these marketplaces:
+        </div>
+        <div class="refresh-links" id="refresh-marketplace-links">
+          <!-- Filled dynamically after parse -->
+        </div>
+      </div>
+
+      <div class="deco-line">
+        <div class="deco-line-bar"></div><div class="deco-dot"></div><div class="deco-line-bar"></div>
+      </div>
+    </div>
+
+    <div class="footer">NFT Deploy Tool <span>//</span> Multi-Chain ERC721</div>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════
+       EXTERNAL SCRIPTS
+       ═══════════════════════════════════════════════════ -->
   <!-- WalletConnect v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2/dist/index.umd.js"></script>
+  <!-- ethers.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 
-  <!-- Scripts -->
-  <script src="/js/registry.js?v=5"></script>
-  <script src="/js/adapters/evm.js?v=5"></script>
-  <script src="/js/adapters/solana.js?v=5"></script>
-  <script src="/js/adapters/move.js?v=5"></script>
-  <script src="/js/adapters/walletconnect.js?v=5"></script>
-  <script src="/js/reveal-abi.js?v=5"></script>
-  <script src="/js/wallet-manager.js?v=5"></script>
-  <script src="/js/ui.js?v=5"></script>
-  <script src="/js/contract-abi.js?v=5"></script>
+  <!-- Internal JS -->
+  <script src="/js/registry.js?v=6"></script>
+  <script src="/js/adapters/evm.js?v=6"></script>
+  <script src="/js/adapters/solana.js?v=6"></script>
+  <script src="/js/adapters/move.js?v=6"></script>
+  <script src="/js/adapters/walletconnect.js?v=6"></script>
+  <script src="/js/reveal-abi.js?v=6"></script>
+  <script src="/js/wallet-manager.js?v=6"></script>
+  <script src="/js/ui.js?v=6"></script>
+  <script src="/js/contract-abi.js?v=6"></script>
 
   <script>
     // ══════════════════════════════════════════════════════════════
     // GLOBAL STATE
     // ══════════════════════════════════════════════════════════════
     let walletManager, walletUI;
-    let contractData = null;  // { abi, bytecode } loaded from /contract.json
-    let networks = [];        // from /api/networks
+    let contractData = null;
+    let networks = [];
+    let _toastTimeout = null;
 
     // Chain ID mapping for server network IDs → actual chainIds
     const NETWORK_CHAIN_MAP = {
@@ -668,15 +1526,37 @@
     };
 
     // ══════════════════════════════════════════════════════════════
+    // TOAST NOTIFICATION SYSTEM
+    // ══════════════════════════════════════════════════════════════
+    function showToast(message, type) {
+      type = type || 'success';
+      // Remove existing toasts
+      var existing = document.querySelectorAll('.toast');
+      existing.forEach(function(t) { t.remove(); });
+      if (_toastTimeout) clearTimeout(_toastTimeout);
+
+      var toast = document.createElement('div');
+      toast.className = 'toast toast-' + type;
+      toast.innerHTML = '<span>' + (type === 'success' ? '✓' : '✖') + '</span><span>' + message + '</span>';
+      document.body.appendChild(toast);
+
+      _toastTimeout = setTimeout(function() {
+        toast.style.transition = 'opacity 0.3s';
+        toast.style.opacity = '0';
+        setTimeout(function() { if (toast.parentNode) toast.remove(); }, 300);
+      }, 4000);
+    }
+
+    // ══════════════════════════════════════════════════════════════
     // INIT
     // ══════════════════════════════════════════════════════════════
-    window.addEventListener('DOMContentLoaded', function () {
+    window.addEventListener('DOMContentLoaded', function() {
       walletManager = new window.WalletManager();
       walletManager.init();
       walletUI = new window.WalletUI(walletManager);
 
-      // Subscribe to wallet state changes → update network warning
-      walletManager.subscribe(function (state) {
+      // Subscribe to wallet state changes
+      walletManager.subscribe(function(state) {
         updateNetworkWarning();
         updateRevealNetworkWarning();
         syncRevealWallet();
@@ -684,25 +1564,49 @@
 
       // Load contract ABI/bytecode
       fetch('/contract.json')
-        .then(r => r.json())
-        .then(data => { contractData = data; })
-        .catch(e => console.warn('Failed to load contract.json:', e));
+        .then(function(r) { return r.json(); })
+        .then(function(data) { contractData = data; })
+        .catch(function(e) { console.warn('Failed to load contract.json:', e); });
+
+      // Check if already authenticated
+      if (localStorage.getItem('nft_auth') === 'true') {
+        doAutoLogin();
+      }
     });
+
+    async function doAutoLogin() {
+      try {
+        var res = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: localStorage.getItem('nft_pw') || '' }),
+        });
+        if (res.ok) {
+          document.getElementById('gate').style.display = 'none';
+          document.getElementById('app').style.display = 'block';
+          loadNetworks();
+          walletUI.init('wallet-status');
+          syncRevealWallet();
+        } else {
+          localStorage.removeItem('nft_auth');
+          localStorage.removeItem('nft_pw');
+        }
+      } catch(e) {
+        localStorage.removeItem('nft_auth');
+      }
+    }
 
     // ══════════════════════════════════════════════════════════════
     // TAB SYSTEM
     // ══════════════════════════════════════════════════════════════
     function switchTab(name) {
-      // Update buttons
-      document.querySelectorAll('.tab-btn').forEach(function (btn) { btn.classList.remove('active'); });
+      document.querySelectorAll('.tab-btn').forEach(function(btn) { btn.classList.remove('active'); });
       event.target.classList.add('active');
 
-      // Update panels
-      document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
+      document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
       var panel = document.getElementById(name + '-panel');
       if (panel) panel.classList.add('active');
 
-      // Sync reveal wallet status when switching to reveal tab
       if (name === 'reveal') {
         syncRevealWallet();
         loadRevealNetworks();
@@ -713,24 +1617,29 @@
     // AUTH
     // ══════════════════════════════════════════════════════════════
     async function doLogin() {
-      const pw = document.getElementById('pw-input').value;
+      var pw = document.getElementById('pw-input').value;
       try {
-        const res = await fetch('/api/auth', {
+        var res = await fetch('/api/auth', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password: pw }),
         });
         if (res.ok) {
+          localStorage.setItem('nft_auth', 'true');
+          localStorage.setItem('nft_pw', pw);
           document.getElementById('gate').style.display = 'none';
           document.getElementById('app').style.display = 'block';
           loadNetworks();
           walletUI.init('wallet-status');
           syncRevealWallet();
+          showToast('Access granted', 'success');
         } else {
           document.getElementById('gate-error').style.display = 'block';
+          showToast('Wrong password', 'error');
         }
-      } catch (e) {
+      } catch(e) {
         document.getElementById('gate-error').style.display = 'block';
+        showToast('Connection failed', 'error');
       }
     }
 
@@ -739,30 +1648,30 @@
     // ══════════════════════════════════════════════════════════════
     async function loadNetworks() {
       try {
-      const res = await fetch('/api/networks');
-      if (!res.ok) throw new Error('Failed to load networks');
-      networks = await res.json();
-      const sel = document.getElementById('network');
-      let currentChain = '';
-      networks.forEach(function (n) {
-        if (n.chain !== currentChain) {
-          if (currentChain !== '') {
-            const sep = document.createElement('option');
-            sep.disabled = true;
-            sep.textContent = '─────────────────';
-            sel.appendChild(sep);
+        var res = await fetch('/api/networks');
+        if (!res.ok) throw new Error('Failed to load networks');
+        networks = await res.json();
+        var sel = document.getElementById('network');
+        var currentChain = '';
+        networks.forEach(function(n) {
+          if (n.chain !== currentChain) {
+            if (currentChain !== '') {
+              var sep = document.createElement('option');
+              sep.disabled = true;
+              sep.textContent = '─────────────────────';
+              sel.appendChild(sep);
+            }
+            currentChain = n.chain;
           }
-          currentChain = n.chain;
-        }
-        const opt = document.createElement('option');
-        opt.value = n.id;
-        opt.textContent = (n.testnet ? '🧪 ' : ' 🟢 ') + n.name;
-        sel.appendChild(opt);
-      });
-      } catch (e) {
+          var opt = document.createElement('option');
+          opt.value = n.id;
+          opt.textContent = (n.testnet ? '🧪 ' : '🟢 ') + n.name;
+          sel.appendChild(opt);
+        });
+      } catch(e) {
         console.error('[Networks] Failed to load:', e);
-        const sel = document.getElementById('network');
-        const opt = document.createElement('option');
+        var sel = document.getElementById('network');
+        var opt = document.createElement('option');
         opt.textContent = 'Failed to load networks';
         opt.disabled = true;
         sel.appendChild(opt);
@@ -774,16 +1683,12 @@
     // ══════════════════════════════════════════════════════════════
     function loadRevealNetworks() {
       var sel = document.getElementById('reveal-network');
-      if (!sel || sel.options.length > 1) return; // already populated
+      if (!sel || sel.options.length > 1) return;
       if (networks.length === 0) {
-        // Try to load from API
         fetch('/api/networks')
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            networks = data;
-            populateRevealNetworks(sel);
-          })
-          .catch(function () {});
+          .then(function(r) { return r.json(); })
+          .then(function(data) { networks = data; populateRevealNetworks(sel); })
+          .catch(function() {});
       } else {
         populateRevealNetworks(sel);
       }
@@ -791,43 +1696,36 @@
 
     function populateRevealNetworks(sel) {
       var currentChain = '';
-      networks.forEach(function (n) {
+      networks.forEach(function(n) {
         if (n.chain !== currentChain) {
           if (currentChain !== '') {
             var sep = document.createElement('option');
             sep.disabled = true;
-            sep.textContent = '─────────────────';
+            sep.textContent = '─────────────────────';
             sel.appendChild(sep);
           }
           currentChain = n.chain;
         }
         var opt = document.createElement('option');
         opt.value = n.id;
-        opt.textContent = (n.testnet ? '🧪 ' : ' 🟢 ') + n.name;
+        opt.textContent = (n.testnet ? '🧪 ' : '🟢 ') + n.name;
         sel.appendChild(opt);
       });
     }
 
-    function onRevealNetworkChange() {
-      updateRevealNetworkWarning();
-    }
+    function onRevealNetworkChange() { updateRevealNetworkWarning(); }
 
     function updateRevealNetworkWarning() {
       var warning = document.getElementById('reveal-network-warning');
       var warningText = document.getElementById('reveal-network-warning-text');
       var state = walletManager.getState();
       if (!warning) return;
-
-      if (!state.connected || state.ecosystem !== 'evm') {
-        warning.classList.remove('show');
-        return;
-      }
+      if (!state.connected || state.ecosystem !== 'evm') { warning.classList.remove('show'); return; }
       var selectedId = document.getElementById('reveal-network').value;
       var selectedChainId = NETWORK_CHAIN_MAP[selectedId];
       var walletChainId = state.chainId;
-
       if (selectedChainId && walletChainId && selectedChainId !== walletChainId) {
-        warningText.textContent = 'Wallet is on chain #' + walletChainId + ', but ' + selectedId + ' is #' + selectedChainId;
+        warningText.textContent = 'Wallet on #' + walletChainId + ', but ' + selectedId + ' requires #' + selectedChainId;
         warning.classList.add('show');
       } else {
         warning.classList.remove('show');
@@ -838,9 +1736,7 @@
       var selectedId = document.getElementById('reveal-network').value;
       var selectedChainId = NETWORK_CHAIN_MAP[selectedId];
       if (!selectedChainId) return;
-      walletManager.switchNetwork(selectedChainId).then(function () {
-        updateRevealNetworkWarning();
-      }).catch(function (err) {
+      walletManager.switchNetwork(selectedChainId).then(function() { updateRevealNetworkWarning(); }).catch(function(err) {
         showRevealError('Failed to switch network: ' + (err.message || 'Unknown error'));
       });
     }
@@ -850,37 +1746,29 @@
       if (!el) return;
       var state = walletManager.getState();
       if (state.connected) {
-        el.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;">' +
-          '<span style="color:#2e7d32;font-size:12px;">✅ Connected: <code style="font-family:monospace;">' +
+        el.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(0,255,100,0.05);border:1px solid rgba(0,255,100,0.2);border-radius:2px;">' +
+          '<span style="color:#00ff64;font-size:12px;">✓ Connected: <code style="font-family:var(--font-mono);color:var(--primary);">' +
           state.address.slice(0, 6) + '...' + state.address.slice(-4) + '</code></span></div>';
       } else {
-        el.innerHTML = '<div style="padding:8px 12px;background:#fff3e0;border:1px solid #ffcc80;border-radius:10px;color:#e65100;font-size:12px;font-weight:600;">⚠️ Not connected — connect wallet in Deploy tab first</div>';
+        el.innerHTML = '<div style="padding:8px 12px;background:rgba(255,200,0,0.05);border:1px solid rgba(255,200,0,0.2);border-radius:2px;color:var(--tertiary);font-size:12px;font-weight:600;">⚠ Not connected — connect wallet in Deploy tab first</div>';
       }
     }
 
     // ══════════════════════════════════════════════════════════════
-    // NETWORK WARNING — show when wallet chain doesn't match dropdown (Deploy tab)
+    // NETWORK WARNING (Deploy tab)
     // ══════════════════════════════════════════════════════════════
-    function onNetworkChange() {
-      updateNetworkWarning();
-    }
+    function onNetworkChange() { updateNetworkWarning(); }
 
     function updateNetworkWarning() {
-      const warning = document.getElementById('network-warning');
-      const warningText = document.getElementById('network-warning-text');
-      const state = walletManager.getState();
-
-      if (!state.connected || state.ecosystem !== 'evm') {
-        warning.classList.remove('show');
-        return;
-      }
-
-      const selectedId = document.getElementById('network').value;
-      const selectedChainId = NETWORK_CHAIN_MAP[selectedId];
-      const walletChainId = state.chainId;
-
+      var warning = document.getElementById('network-warning');
+      var warningText = document.getElementById('network-warning-text');
+      var state = walletManager.getState();
+      if (!state.connected || state.ecosystem !== 'evm') { warning.classList.remove('show'); return; }
+      var selectedId = document.getElementById('network').value;
+      var selectedChainId = NETWORK_CHAIN_MAP[selectedId];
+      var walletChainId = state.chainId;
       if (selectedChainId && walletChainId && selectedChainId !== walletChainId) {
-        warningText.textContent = 'Wallet is on chain #' + walletChainId + ', but ' + selectedId + ' is #' + selectedChainId;
+        warningText.textContent = 'Wallet on #' + walletChainId + ', but ' + selectedId + ' requires #' + selectedChainId;
         warning.classList.add('show');
       } else {
         warning.classList.remove('show');
@@ -888,14 +1776,14 @@
     }
 
     async function switchToSelectedNetwork() {
-      const selectedId = document.getElementById('network').value;
-      const selectedChainId = NETWORK_CHAIN_MAP[selectedId];
+      var selectedId = document.getElementById('network').value;
+      var selectedChainId = NETWORK_CHAIN_MAP[selectedId];
       if (!selectedChainId) return;
-
       try {
         await walletManager.switchNetwork(selectedChainId);
         updateNetworkWarning();
-      } catch (err) {
+        showToast('Network switched', 'success');
+      } catch(err) {
         showError('Failed to switch network: ' + (err.message || 'Unknown error'));
       }
     }
@@ -904,85 +1792,81 @@
     // DEPLOY — CLIENT-SIDE VIA CONNECTED WALLET
     // ══════════════════════════════════════════════════════════════
     async function doDeploy() {
-      const btn = document.getElementById('btn-deploy');
-      const resultBox = document.getElementById('result');
-      const errorBox = document.getElementById('error-box');
+      var btn = document.getElementById('btn-deploy');
+      var resultBox = document.getElementById('result');
+      var errorBox = document.getElementById('error-box');
 
-      // ── Step 1: Validate wallet connected ──
-      const state = walletManager.getState();
+      // Step 1: Validate wallet connected
+      var state = walletManager.getState();
       if (!state.connected) {
         showError('Wallet not connected. Please connect your wallet first.');
         return;
       }
-
       if (state.ecosystem !== 'evm') {
-        showError('Only EVM wallets are supported for contract deployment. Please connect an EVM wallet (MetaMask, Rabby, OKX, etc.)');
+        showError('Only EVM wallets are supported for contract deployment.');
         return;
       }
 
-      // ── Step 2: Validate chain matches ──
-      const selectedId = document.getElementById('network').value;
-      const selectedChainId = NETWORK_CHAIN_MAP[selectedId];
+      // Step 2: Validate chain matches
+      var selectedId = document.getElementById('network').value;
+      var selectedChainId = NETWORK_CHAIN_MAP[selectedId];
       if (selectedChainId && state.chainId !== selectedChainId) {
-        showError('Wrong network. Your wallet is on chain #' + state.chainId + ', but ' + selectedId + ' requires chain #' + selectedChainId + '.\n\nPlease click "Switch" next to the network dropdown first.');
+        showError('Wrong network. Your wallet is on chain #' + state.chainId + ', but ' + selectedId + ' requires chain #' + selectedChainId + '.\n\nClick "Switch" next to the network dropdown first.');
         return;
       }
 
-      // ── Step 3: Validate form ──
-      const data = {
+      // Step 3: Validate form
+      var data = {
         name: document.getElementById('name').value.trim(),
         symbol: document.getElementById('symbol').value.trim(),
         supply: parseInt(document.getElementById('supply').value),
         price: document.getElementById('price').value.trim(),
         perWallet: parseInt(document.getElementById('perWallet').value),
-        royaltyFee: parseFloat(document.getElementById('royaltyFee').value) || 0,
+        royaltyFee: 0,
         hiddenUri: document.getElementById('hiddenUri').value.trim(),
         baseUri: document.getElementById('baseUri').value.trim(),
       };
 
       if (!data.name || !data.symbol || !data.supply || !data.price || !data.perWallet || !data.baseUri) {
-        showError('Please fill all required fields ♡');
+        showError('Please fill all required fields');
         return;
       }
 
-      // ── Step 4: Validate contract data loaded ──
+      // Step 4: Validate contract data loaded
       if (!contractData || !contractData.bytecode) {
         showError('Contract bytecode not loaded. Please refresh the page and try again.');
         return;
       }
 
-      // ── Step 5: Show transaction preview ──
+      // Step 5: Show transaction preview
       showDeployPreview(data, selectedId, selectedChainId);
     }
 
     function showDeployPreview(data, networkId, chainId) {
-      // Remove existing preview
-      const existing = document.querySelector('.preview-overlay');
+      var existing = document.querySelector('.preview-overlay');
       if (existing) existing.remove();
 
-      const explorerBase = EXPLORER_MAP[chainId] || '';
-      const overlay = document.createElement('div');
+      var explorerBase = EXPLORER_MAP[chainId] || '';
+      var overlay = document.createElement('div');
       overlay.className = 'preview-overlay';
-      overlay.onclick = function (e) { if (e.target === overlay) overlay.remove(); };
+      overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
 
-      const modal = document.createElement('div');
+      var modal = document.createElement('div');
       modal.className = 'preview-modal';
 
-      // Header
-      const header = document.createElement('div');
+      var header = document.createElement('div');
       header.className = 'preview-header';
-      header.innerHTML = '<h3>📋 Transaction Preview</h3>';
-      const closeBtn = document.createElement('button');
+      header.innerHTML = '<h3>◈ Transaction Preview</h3>';
+      var closeBtn = document.createElement('button');
       closeBtn.className = 'preview-close';
       closeBtn.textContent = '✕';
-      closeBtn.onclick = function () { overlay.remove(); };
+      closeBtn.onclick = function() { overlay.remove(); };
       header.appendChild(closeBtn);
 
-      // Body
-      const body = document.createElement('div');
+      var body = document.createElement('div');
       body.className = 'preview-body';
 
-      const rows = [
+      var rows = [
         { label: 'Action', value: 'Deploy NFTCollection Contract' },
         { label: 'Network', value: networkId + ' (Chain #' + chainId + ')' },
         { label: 'From', value: walletManager.address },
@@ -991,31 +1875,29 @@
         { label: 'Max Supply', value: data.supply.toString() },
         { label: 'Mint Price', value: data.price + ' ETH' },
         { label: 'Max Per Wallet', value: data.perWallet.toString() },
-        { label: 'Creator Fee', value: data.royaltyFee + '%' },
         { label: 'Hidden URI', value: data.hiddenUri },
         { label: 'Base URI', value: data.baseUri },
       ];
 
-      rows.forEach(function (r) {
-        const row = document.createElement('div');
+      rows.forEach(function(r) {
+        var row = document.createElement('div');
         row.className = 'preview-row';
         row.innerHTML = '<span class="preview-label">' + r.label + '</span><span class="preview-value">' + r.value + '</span>';
         body.appendChild(row);
       });
 
-      // Footer
-      const footer = document.createElement('div');
+      var footer = document.createElement('div');
       footer.className = 'preview-footer';
 
-      const cancelBtn = document.createElement('button');
+      var cancelBtn = document.createElement('button');
       cancelBtn.className = 'preview-btn preview-btn-cancel';
       cancelBtn.textContent = 'Cancel';
-      cancelBtn.onclick = function () { overlay.remove(); };
+      cancelBtn.onclick = function() { overlay.remove(); };
 
-      const confirmBtn = document.createElement('button');
+      var confirmBtn = document.createElement('button');
       confirmBtn.className = 'preview-btn preview-btn-confirm';
-      confirmBtn.textContent = '🔮 Confirm Deploy';
-      confirmBtn.onclick = function () {
+      confirmBtn.textContent = '▸ Confirm Deploy';
+      confirmBtn.onclick = function() {
         overlay.remove();
         executeDeploy(data, networkId, chainId);
       };
@@ -1031,9 +1913,9 @@
     }
 
     async function executeDeploy(data, networkId, chainId) {
-      const btn = document.getElementById('btn-deploy');
-      const resultBox = document.getElementById('result');
-      const errorBox = document.getElementById('error-box');
+      var btn = document.getElementById('btn-deploy');
+      var resultBox = document.getElementById('result');
+      var errorBox = document.getElementById('error-box');
 
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span>Waiting for wallet approval...';
@@ -1041,33 +1923,28 @@
       errorBox.style.display = 'none';
 
       try {
-        // Convert mint price to wei (hex)
-        const priceEth = parseFloat(data.price);
-        const priceWei = BigInt(Math.round(priceEth * 1e18));
+        var priceEth = parseFloat(data.price);
+        var priceWei = BigInt(Math.round(priceEth * 1e18));
 
-        // Encode constructor arguments
-        const abi = contractData.abi;
-        const bytecode = contractData.bytecode.startsWith('0x') ? contractData.bytecode : '0x' + contractData.bytecode;
+        var abi = contractData.abi;
+        var bytecode = contractData.bytecode.startsWith('0x') ? contractData.bytecode : '0x' + contractData.bytecode;
 
-        // Use ethers.js if available for ABI encoding
-        let encodedArgs;
+        var encodedArgs;
         if (window.ethers) {
-          const coder = new window.ethers.utils.AbiCoder();
+          var coder = new window.ethers.utils.AbiCoder();
           encodedArgs = coder.encode(
             ['string', 'string', 'uint256', 'uint256', 'uint256', 'string', 'string'],
             [data.name, data.symbol, data.supply, priceWei, data.perWallet, data.hiddenUri || data.baseUri, data.baseUri]
           );
         } else {
-          // Manual ABI encoding fallback
-          encodedArgs = manualEncodeConstructor(data, priceWei);
+          throw new Error('ABI encoder requires ethers.js. Please include ethers.js in the page.');
         }
 
-        const deployData = bytecode + encodedArgs.slice(2); // remove 0x prefix from encoded args
+        var deployData = bytecode + encodedArgs.slice(2);
 
-        // ── Estimate gas via public RPC (OKX/MetaMask internal estimation often fails) ──
-        let gasLimit = '0x3D0900'; // 4M default fallback
-        // Map chainId → working public RPC for gas estimation
-        const _chainRPCs = {
+        // Gas estimation
+        var gasLimit = '0x3D0900';
+        var _chainRPCs = {
           1: 'https://ethereum-rpc.publicnode.com',
           11155111: 'https://ethereum-sepolia-rpc.publicnode.com',
           137: 'https://polygon-bor-rpc.publicnode.com',
@@ -1103,19 +1980,17 @@
           34443: 'https://mainnet.mode.network',
           1088: 'https://andromeda.metis.io/?owner=588',
           252: 'https://rpc.frax.com',
-          43434: null,  // No reliable public RPC, will use 4M default
+          43434: null,
           480: 'https://worldchain-mainnet.g.alchemy.com/public',
           13371: 'https://rpc.immutable.com',
           1284: 'https://rpc.api.moonbeam.network',
           1285: 'https://rpc.moonriver.moonbeam.network',
         };
-        const _rpc = _chainRPCs[chainId];
-        const _gasRPCs = _rpc
-          ? [_rpc, 'https://ethereum-rpc.publicnode.com']
-          : ['https://ethereum-rpc.publicnode.com'];
-        for (const rpcUrl of _gasRPCs) {
+        var _rpc = _chainRPCs[chainId];
+        var _gasRPCs = _rpc ? [_rpc, 'https://ethereum-rpc.publicnode.com'] : ['https://ethereum-rpc.publicnode.com'];
+        for (var _i = 0; _i < _gasRPCs.length; _i++) {
           try {
-            const _resp = await fetch(rpcUrl, {
+            var _resp = await fetch(_gasRPCs[_i], {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -1123,87 +1998,70 @@
                 params: [{ from: walletManager.address, data: deployData }]
               })
             });
-            const _json = await _resp.json();
+            var _json = await _resp.json();
             if (_json.result && !_json.error) {
-              const gasNum = parseInt(_json.result, 16);
+              var gasNum = parseInt(_json.result, 16);
               gasLimit = '0x' + Math.ceil(gasNum * 1.2).toString(16);
-              console.log('[Deploy] Gas estimated via', rpcUrl, ':', gasNum, '→ buffer:', parseInt(gasLimit, 16));
               break;
             }
-          } catch (e) { console.warn('[Deploy] Gas RPC failed:', rpcUrl, e.message); }
+          } catch(e) {}
         }
 
-        // ── Send transaction via connected wallet ──
-        // This will trigger the wallet popup for user approval
-        const txHash = await walletManager.sendTransaction({
+        // Send transaction via connected wallet
+        var txHash = await walletManager.sendTransaction({
           data: deployData,
           gas: gasLimit,
-          // No 'to' field = contract creation
           value: '0x0',
         });
 
-        // ── TX sent — now wait for confirmation ──
-        btn.innerHTML = '<span class="spinner"></span>Transaction sent! Waiting for confirmation...';
+        btn.innerHTML = '<span class="spinner"></span>TX sent — waiting for confirmation...';
+        showToast('Transaction submitted', 'success');
 
-        // Get the explorer URL
-        const explorerBase = EXPLORER_MAP[chainId] || 'https://etherscan.io';
-
-        // Try to get receipt via provider
-        let contractAddress = null;
-        let attempts = 0;
+        var explorerBase = EXPLORER_MAP[chainId] || 'https://etherscan.io';
+        var contractAddress = null;
+        var attempts = 0;
         while (!contractAddress && attempts < 30) {
           try {
-            // Try wallet provider first, then public RPC
-            const receiptRPCs = [
-              null, // try wallet provider first
-              _chainRPCs[chainId] || null
-            ];
-            for (const rpcUrl of receiptRPCs) {
+            var receiptRPCs = [null, _chainRPCs[chainId] || null];
+            for (var _j = 0; _j < receiptRPCs.length; _j++) {
+              var rpcUrl = receiptRPCs[_j];
               try {
-                let receipt;
-                if (!rpcUrl && walletManager.currentAdapter?.adapter?.provider) {
+                var receipt;
+                if (!rpcUrl && walletManager.currentAdapter && walletManager.currentAdapter.adapter && walletManager.currentAdapter.adapter.provider) {
                   receipt = await walletManager.currentAdapter.adapter.provider.request({
                     method: 'eth_getTransactionReceipt',
                     params: [txHash]
                   });
                 } else if (rpcUrl) {
-                  const resp = await fetch(rpcUrl, {
+                  var resp = await fetch(rpcUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({jsonrpc:'2.0',id:1,method:'eth_getTransactionReceipt',params:[txHash]})
                   });
-                  const json = await resp.json();
+                  var json = await resp.json();
                   receipt = json.result;
                 }
-                if (receipt) {
-                  contractAddress = receipt.contractAddress;
-                  break;
-                }
-              } catch (_) {}
+                if (receipt) { contractAddress = receipt.contractAddress; break; }
+              } catch(_e) {}
             }
-          } catch (_) {}
-          await new Promise(r => setTimeout(r, 3000));
+          } catch(_e) {}
+          await new Promise(function(r) { setTimeout(r, 3000); });
           attempts++;
         }
-        // Always show result even if receipt not yet available
-        console.log('[Deploy] Receipt polling done. Contract:', contractAddress, 'TX:', txHash);
 
-        // Show result
         document.getElementById('r-network').textContent = networkId + ' (Chain #' + chainId + ')';
         document.getElementById('r-address').textContent = contractAddress || '(pending confirmation...)';
         document.getElementById('r-deployer').textContent = walletManager.address;
         document.getElementById('r-tx').innerHTML = '<a href="' + explorerBase + '/tx/' + txHash + '" target="_blank">' + txHash.slice(0, 20) + '...</a>';
         document.getElementById('r-explorer').innerHTML = contractAddress
-          ? '<a href="' + explorerBase + '/address/' + contractAddress + '" target="_blank">View on Explorer ♡</a>'
-          : '<a href="' + explorerBase + '/tx/' + txHash + '" target="_blank">View TX on Explorer ♡</a>';
+          ? '<a href="' + explorerBase + '/address/' + contractAddress + '" target="_blank">View on Explorer ▸</a>'
+          : '<a href="' + explorerBase + '/tx/' + txHash + '" target="_blank">View TX on Explorer ▸</a>';
         resultBox.style.display = 'block';
+        showToast('Contract deployed successfully!', 'success');
 
-      } catch (err) {
+      } catch(err) {
         console.error('[Deploy] Error:', err);
-
-        // ── Error handling per Remm's requirements ──
-        let msg = err.message || String(err);
-
+        var msg = err.message || String(err);
         if (err.code === 4001 || msg.includes('user rejected') || msg.includes('User rejected')) {
           msg = 'User rejected request. Deploy cancelled.';
         } else if (msg.includes('popup') || msg.includes('does not open') || msg.includes('Wallet popup')) {
@@ -1213,26 +2071,12 @@
         } else if (msg.includes('not detected') || msg.includes('not installed')) {
           msg = 'Wallet not detected. Please install MetaMask or another EVM wallet.';
         }
-
         showError(msg);
+        showToast('Deploy failed', 'error');
       }
 
       btn.disabled = false;
-      btn.innerHTML = '✨ Deploy Contract ✨';
-    }
-
-    // ══════════════════════════════════════════════════════════════
-    // MANUAL ABI ENCODER — fallback when ethers.js not loaded
-    // ══════════════════════════════════════════════════════════════
-    function manualEncodeConstructor(data, priceWei) {
-      // ABI encoding for constructor(string,string,uint256,uint256,uint256,string,string)
-      // Each static type is 32 bytes, strings are offset + data
-      const types = ['string', 'string', 'uint256', 'uint256', 'uint256', 'string', 'string'];
-      const values = [data.name, data.symbol, BigInt(data.supply), priceWei, BigInt(data.perWallet), data.hiddenUri || data.baseUri, data.baseUri];
-
-      // All types are dynamic (strings) or static (uint256)
-      // For simplicity, use ethers.js. If not available, throw.
-      throw new Error('ABI encoder requires ethers.js. Please include ethers.js in the page.');
+      btn.innerHTML = '▸ Deploy Contract';
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -1257,8 +2101,7 @@
       document.getElementById('reveal-error-box').style.display = 'none';
 
       try {
-        // Use reveal ABI from reveal-abi.js
-        var revealABI = window.REVEAL_ABI || [
+        var revealABI = window.RevealABI || window.REVEAL_ABI || [
           'function revealed() view returns (bool)',
           'function owner() view returns (address)',
           'function hiddenURI() view returns (string)',
@@ -1269,26 +2112,16 @@
         ];
         var iface = new window.ethers.utils.Interface(revealABI);
 
-        // Read revealed, hiddenURI, baseURI, maxSupply, owner via multicall
         var calldata1 = iface.encodeFunctionData('revealed');
         var calldata2 = iface.encodeFunctionData('owner');
         var calldata3 = iface.encodeFunctionData('hiddenURI');
         var calldata4 = iface.encodeFunctionData('baseURI');
         var calldata5 = iface.encodeFunctionData('maxSupply');
 
-        var rpcUrl = getRevealRPCUrl();
-        if (!rpcUrl) {
-          showRevealError('Could not find RPC for the selected network. Please try a different chain.');
-          btn.disabled = false;
-          btn.innerHTML = '📖 Read Status';
-          return;
-        }
-
-        // Execute each call via wallet provider
-        var provider = walletManager.currentAdapter?.adapter?.provider;
+        var provider = walletManager.currentAdapter && walletManager.currentAdapter.adapter && walletManager.currentAdapter.adapter.provider;
         if (!provider) throw new Error('No provider available');
 
-        var ethCall = function (data) {
+        var ethCall = function(data) {
           return provider.request({
             method: 'eth_call',
             params: [{ to: contractAddr, data: data }, 'latest']
@@ -1309,27 +2142,22 @@
         var baseURI = iface.decodeFunctionResult('baseURI', results[3])[0];
         var maxSupply = iface.decodeFunctionResult('maxSupply', results[4])[0];
 
-        // Populate status card
-        document.getElementById('rv-revealed').textContent = revealed ? '✅ Yes' : '🔒 No';
+        document.getElementById('rv-revealed').textContent = revealed ? '✓ Yes' : '🔒 No';
+        document.getElementById('rv-revealed').style.color = revealed ? '#00ff64' : 'var(--tertiary)';
         document.getElementById('rv-owner').textContent = owner;
         document.getElementById('rv-hiddenURI').textContent = hiddenURI || '(empty)';
         document.getElementById('rv-baseURI').textContent = baseURI || '(empty)';
         document.getElementById('rv-maxSupply').textContent = maxSupply.toString();
 
-        // Show status card
         document.getElementById('reveal-status-card').style.display = 'block';
-
-        // Show reveal form card
         document.getElementById('reveal-form-card').style.display = 'block';
 
-        // Check if already revealed
         if (revealed) {
           document.getElementById('reveal-already-revealed').style.display = 'block';
           document.getElementById('reveal-not-owner').style.display = 'none';
           document.getElementById('reveal-form-body').style.display = 'none';
         } else {
           document.getElementById('reveal-already-revealed').style.display = 'none';
-          // Check if user is owner
           if (owner.toLowerCase() !== walletManager.address.toLowerCase()) {
             document.getElementById('reveal-not-owner').style.display = 'block';
             document.getElementById('reveal-form-body').style.display = 'none';
@@ -1339,13 +2167,15 @@
           }
         }
 
-      } catch (err) {
+        showToast('Contract state loaded', 'success');
+
+      } catch(err) {
         console.error('[Reveal] Read error:', err);
         showRevealError('Failed to read contract: ' + (err.message || String(err)));
       }
 
       btn.disabled = false;
-      btn.innerHTML = '📖 Read Status';
+      btn.innerHTML = '▸ Read Contract Status';
     }
 
     function getRevealRPCUrl() {
@@ -1395,13 +2225,13 @@
       btn.innerHTML = '<span class="spinner"></span>Looking up...';
 
       try {
-        var revealABI = window.REVEAL_ABI || [
+        var revealABI = window.RevealABI || window.REVEAL_ABI || [
           'function tokenURI(uint256 tokenId) view returns (string)',
         ];
         var iface = new window.ethers.utils.Interface(revealABI);
         var calldata = iface.encodeFunctionData('tokenURI', [parseInt(tokenId)]);
 
-        var provider = walletManager.currentAdapter?.adapter?.provider;
+        var provider = walletManager.currentAdapter && walletManager.currentAdapter.adapter && walletManager.currentAdapter.adapter.provider;
         if (!provider) throw new Error('No provider available');
 
         var result = await provider.request({
@@ -1412,7 +2242,7 @@
         var uri = iface.decodeFunctionResult('tokenURI', result)[0];
         resultDiv.textContent = 'Token #' + tokenId + ': ' + uri;
         resultDiv.style.display = 'block';
-      } catch (err) {
+      } catch(err) {
         resultDiv.textContent = 'Error: ' + (err.message || String(err));
         resultDiv.style.display = 'block';
       }
@@ -1432,9 +2262,8 @@
       }
 
       var container = document.getElementById('reveal-validate-results');
-      container.innerHTML = '<div style="font-size:12px;color:#b07090;">Validating...</div>';
+      container.innerHTML = '<div style="font-size:12px;color:var(--text-dim);">Validating...</div>';
 
-      // Ensure base URI ends with /
       if (!newBaseURI.endsWith('/')) newBaseURI += '/';
 
       var testIds = [1, 2];
@@ -1444,25 +2273,17 @@
         var url = newBaseURI + testIds[i] + '.json';
         try {
           var resp = await fetch(url, { method: 'HEAD' });
-          results.push({
-            url: url,
-            ok: resp.ok,
-            status: resp.status
-          });
-        } catch (err) {
-          results.push({
-            url: url,
-            ok: false,
-            status: err.message || 'Failed'
-          });
+          results.push({ url: url, ok: resp.ok, status: resp.status });
+        } catch(err) {
+          results.push({ url: url, ok: false, status: err.message || 'Failed' });
         }
       }
 
       container.innerHTML = '';
-      results.forEach(function (r) {
+      results.forEach(function(r) {
         var div = document.createElement('div');
         div.className = 'validate-result ' + (r.ok ? 'validate-ok' : 'validate-fail');
-        div.textContent = (r.ok ? '✅ ' : '❌ ') + r.url + (r.ok ? ' (' + r.status + ')' : ' — ' + r.status);
+        div.textContent = (r.ok ? '✓ ' : '✖ ') + r.url + (r.ok ? ' (' + r.status + ')' : ' — ' + r.status);
         container.appendChild(div);
       });
     }
@@ -1479,14 +2300,12 @@
       }
       if (!newBaseURI.endsWith('/')) newBaseURI += '/';
 
-      // Validate owner match
       var state = walletManager.getState();
       if (!state.connected) {
         showRevealError('Wallet not connected');
         return;
       }
 
-      // Re-read owner to confirm
       var btn = document.getElementById('btn-do-reveal');
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span>Preparing reveal...';
@@ -1494,7 +2313,7 @@
       document.getElementById('reveal-result-card').style.display = 'none';
 
       try {
-        var revealABI = window.REVEAL_ABI || [
+        var revealABI = window.RevealABI || window.REVEAL_ABI || [
           'function owner() view returns (address)',
           'function reveal(string newBaseURI)',
         ];
@@ -1502,7 +2321,7 @@
 
         // Check owner
         var ownerCalldata = iface.encodeFunctionData('owner');
-        var provider = walletManager.currentAdapter?.adapter?.provider;
+        var provider = walletManager.currentAdapter && walletManager.currentAdapter.adapter && walletManager.currentAdapter.adapter.provider;
         if (!provider) throw new Error('No provider available');
 
         var ownerResult = await provider.request({
@@ -1514,25 +2333,22 @@
         if (owner.toLowerCase() !== state.address.toLowerCase()) {
           showRevealError('You are not the contract owner. Only the owner can reveal.\nYour address: ' + state.address + '\nOwner: ' + owner);
           btn.disabled = false;
-          btn.innerHTML = '🔓 Confirm Reveal';
+          btn.innerHTML = '▸ Confirm Reveal';
           return;
         }
 
-        // Encode reveal(newBaseURI) call
         var calldata = iface.encodeFunctionData('reveal', [newBaseURI]);
-
         btn.innerHTML = '<span class="spinner"></span>Waiting for wallet approval...';
 
-        // Send transaction via wallet
         var txHash = await walletManager.sendTransaction({
           to: contractAddr,
           data: calldata,
           value: '0x0',
         });
 
-        btn.innerHTML = '<span class="spinner"></span>Transaction sent! Waiting for confirmation...';
+        btn.innerHTML = '<span class="spinner"></span>TX sent — waiting for confirmation...';
+        showToast('Reveal transaction submitted', 'success');
 
-        // Wait for receipt
         var attempts = 0;
         var receipt = null;
         while (!receipt && attempts < 30) {
@@ -1541,34 +2357,33 @@
               method: 'eth_getTransactionReceipt',
               params: [txHash]
             });
-          } catch (_) {}
-          if (!receipt) await new Promise(function (r) { setTimeout(r, 3000); });
+          } catch(_e) {}
+          if (!receipt) await new Promise(function(r) { setTimeout(r, 3000); });
           attempts++;
         }
 
-        // Show result
         var selectedId = document.getElementById('reveal-network').value;
         var chainId = NETWORK_CHAIN_MAP[selectedId];
         var explorerBase = EXPLORER_MAP[chainId] || 'https://etherscan.io';
 
-        document.getElementById('reveal-r-tx').innerHTML = '<a href="' + explorerBase + '/tx/' + txHash + '" target="_blank" style="color:#e75480;text-decoration:none;font-weight:600;">' + txHash.slice(0, 20) + '...</a>';
-        document.getElementById('reveal-r-explorer').innerHTML = '<a href="' + explorerBase + '/tx/' + txHash + '" target="_blank" style="color:#e75480;text-decoration:none;font-weight:600;">View TX on Explorer ♡</a>';
+        document.getElementById('reveal-r-tx').innerHTML = '<a href="' + explorerBase + '/tx/' + txHash + '" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">' + txHash.slice(0, 20) + '...</a>';
+        document.getElementById('reveal-r-explorer').innerHTML = '<a href="' + explorerBase + '/tx/' + txHash + '" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">View TX on Explorer ▸</a>';
         document.getElementById('reveal-result-card').style.display = 'block';
-
-        // Hide form
         document.getElementById('reveal-form-card').style.display = 'none';
+        showToast('Collection revealed successfully!', 'success');
 
-      } catch (err) {
+      } catch(err) {
         console.error('[Reveal] Error:', err);
         var msg = err.message || String(err);
         if (err.code === 4001 || msg.includes('user rejected')) {
           msg = 'User rejected request. Reveal cancelled.';
         }
         showRevealError(msg);
+        showToast('Reveal failed', 'error');
       }
 
       btn.disabled = false;
-      btn.innerHTML = '🔓 Confirm Reveal';
+      btn.innerHTML = '▸ Confirm Reveal';
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -1583,42 +2398,88 @@
     }
 
     // ══════════════════════════════════════════════════════════════
-    // REVEAL — REFRESH OPENSEA
+    // REFRESH — PARSE URL
     // ══════════════════════════════════════════════════════════════
-    function refreshOpenSea() {
-      var contractAddr = document.getElementById('reveal-contract').value.trim();
-      var selectedId = document.getElementById('reveal-network').value;
-      var chainId = NETWORK_CHAIN_MAP[selectedId];
+    function parseRefreshUrl() {
+      var url = document.getElementById('refresh-url').value.trim();
+      if (!url) return;
 
-      var osChainMap = {
-        1: 'https://opensea.io',
-        11155111: 'https://testnets.opensea.io',
-        137: 'https://opensea.io',
-        80002: 'https://testnets.opensea.io',
-        56: 'https://opensea.io',
-        42161: 'https://opensea.io',
-        10: 'https://opensea.io',
-        8453: 'https://opensea.io',
-        84532: 'https://testnets.opensea.io',
-      };
+      // Extract slug from various OpenSea URL formats
+      var slug = null;
 
-      var base = osChainMap[chainId] || 'https://opensea.io';
-      window.open(base + '/asset/erc721/' + contractAddr + '/1', '_blank');
+      // https://opensea.io/collection/my-collection
+      var match1 = url.match(/opensea\.io\/collection\/([a-zA-Z0-9_-]+)/i);
+      if (match1) slug = match1[1];
+
+      // https://testnets.opensea.io/collection/my-collection
+      var match2 = url.match(/testnets\.opensea\.io\/collection\/([a-zA-Z0-9_-]+)/i);
+      if (match2) slug = match2[1];
+
+      // If it's just a slug (no URL)
+      if (!slug && /^[a-zA-Z0-9_-]+$/.test(url)) slug = url;
+
+      if (!slug) {
+        showToast('Could not parse collection slug from URL', 'error');
+        return;
+      }
+
+      // Fill slug input
+      document.getElementById('refresh-slug').value = slug;
+
+      // Generate links
+      var linksContainer = document.getElementById('refresh-links-container');
+      linksContainer.innerHTML = '';
+
+      var links = [
+        { label: 'OpenSea', icon: '◆', url: 'https://opensea.io/collection/' + slug, desc: 'Primary marketplace' },
+        { label: 'OpenSea (Testnet)', icon: '◇', url: 'https://testnets.opensea.io/collection/' + slug, desc: 'For testnet collections' },
+      ];
+
+      links.forEach(function(link) {
+        var a = document.createElement('a');
+        a.className = 'refresh-link';
+        a.href = link.url;
+        a.target = '_blank';
+        a.innerHTML = '<span class="link-icon">' + link.icon + '</span><div class="link-text"><div style="font-weight:600;">' + link.label + '</div><div class="link-label">' + link.desc + '</div></div>';
+        linksContainer.appendChild(a);
+      });
+
+      // Show timer
+      document.getElementById('refresh-timer').style.display = 'block';
+      document.getElementById('refresh-results').style.display = 'block';
+
+      // Marketplace links
+      var mktContainer = document.getElementById('refresh-marketplace-links');
+      mktContainer.innerHTML = '';
+
+      var marketplaces = [
+        { label: 'OpenSea', icon: '◆', url: 'https://opensea.io/collection/' + slug },
+        { label: 'Blur', icon: '◈', url: 'https://blur.io/collection/' + slug },
+        { label: 'Gem', icon: '◇', url: 'https://app.gem.xyz/collection/' + slug },
+      ];
+
+      marketplaces.forEach(function(mp) {
+        var a = document.createElement('a');
+        a.className = 'refresh-link';
+        a.href = mp.url;
+        a.target = '_blank';
+        a.innerHTML = '<span class="link-icon">' + mp.icon + '</span><div class="link-text"><div style="font-weight:600;">' + mp.label + '</div><div class="link-label">' + mp.url + '</div></div>';
+        mktContainer.appendChild(a);
+      });
+
+      showToast('Collection parsed: ' + slug, 'success');
     }
 
     // ══════════════════════════════════════════════════════════════
     // DEPLOY — ERROR DISPLAY
     // ══════════════════════════════════════════════════════════════
     function showError(msg) {
-      const errorBox = document.getElementById('error-box');
-      const errorMsg = document.getElementById('error-msg');
+      var errorBox = document.getElementById('error-box');
+      var errorMsg = document.getElementById('error-msg');
       errorBox.style.display = 'block';
       errorMsg.textContent = msg;
       document.getElementById('result').style.display = 'none';
     }
   </script>
-
-  <!-- ethers.js for ABI encoding + provider wrapping -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 </body>
 </html>
