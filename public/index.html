@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NFT Deploy Tool ✿</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #fff0f5;
+      color: #4a3040;
+      font-family: 'Quicksand', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Floating characters ── */
+    .float-char {
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+      image-rendering: pixelated;
+      opacity: 0.12;
+    }
+
+    /* ── Password Gate ── */
+    #gate {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #fff0f5 0%, #f0e6ff 50%, #e6f7ff 100%);
+      position: relative;
+    }
+    .gate-chars {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .gate-char {
+      position: absolute;
+      image-rendering: pixelated;
+      animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(-3deg); }
+      50% { transform: translateY(-15px) rotate(3deg); }
+    }
+    .gate-box {
+      background: white;
+      border-radius: 28px;
+      padding: 48px 40px;
+      width: 420px;
+      text-align: center;
+      box-shadow: 0 8px 40px rgba(255, 150, 180, 0.2);
+      border: 2px solid #ffd6e8;
+      position: relative;
+      z-index: 1;
+    }
+    .gate-kitty { font-size: 72px; margin-bottom: 8px; animation: bounce 2s ease-in-out infinite; }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .gate-box h1 { font-family: 'Fredoka', sans-serif; font-size: 24px; color: #e75480; margin-bottom: 4px; }
+    .gate-box .subtitle { font-size: 13px; color: #c9a0b0; margin-bottom: 28px; }
+    .gate-box input {
+      width: 100%; padding: 14px 18px; background: #fff5f8;
+      border: 2px solid #ffd6e8; border-radius: 14px; color: #4a3040;
+      font-size: 14px; font-family: 'Quicksand', sans-serif; outline: none;
+      margin-bottom: 16px; text-align: center; letter-spacing: 4px;
+    }
+    .gate-box input:focus { border-color: #ff80ab; box-shadow: 0 0 0 3px rgba(255, 128, 171, 0.15); }
+    .gate-box button {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, #ff80ab, #f48fb1);
+      border: none; border-radius: 14px; color: white;
+      font-weight: 700; font-size: 15px; font-family: 'Fredoka', sans-serif;
+      cursor: pointer; transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(255, 128, 171, 0.4);
+    }
+    .gate-box button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 128, 171, 0.5); }
+    .gate-error { color: #e75480; font-size: 12px; margin-top: 10px; display: none; font-weight: 600; }
+
+    /* ── Main App ── */
+    #app { display: none; min-height: 100vh; background: linear-gradient(180deg, #fff0f5 0%, #f8f0ff 100%); position: relative; }
+    .header {
+      background: white; border-bottom: 2px solid #ffd6e8;
+      padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 10px rgba(255, 150, 180, 0.1);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .header .logo { display: flex; align-items: center; gap: 10px; }
+    .header .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, #ff80ab, #ce93d8);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .header h1 { font-family: 'Fredoka', sans-serif; font-size: 18px; color: #e75480; }
+    .header .badge {
+      font-size: 11px; color: #c9a0b0; background: #fff5f8;
+      border: 1px solid #ffd6e8; padding: 5px 12px; border-radius: 20px; font-weight: 600;
+    }
+    .container { max-width: 680px; margin: 28px auto; padding: 0 20px; position: relative; z-index: 1; }
+    .card {
+      background: white; border-radius: 20px; padding: 24px 28px;
+      margin-bottom: 18px; box-shadow: 0 4px 20px rgba(255, 150, 180, 0.1);
+      border: 1.5px solid #ffd6e8; position: relative;
+    }
+    .card .char-deco {
+      position: absolute; top: -16px; right: 20px; font-size: 32px;
+      image-rendering: pixelated; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+    .card h2 {
+      font-family: 'Fredoka', sans-serif; font-size: 15px; color: #e75480;
+      margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .card h2 .icon {
+      width: 28px; height: 28px; background: #fff0f5; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    .form-group { margin-bottom: 13px; }
+    .form-group label {
+      display: block; font-size: 11px; color: #b07090;
+      margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .form-group input, .form-group select {
+      width: 100%; padding: 10px 14px; background: #fff8fa;
+      border: 1.5px solid #ffd6e8; border-radius: 12px; color: #4a3040;
+      font-size: 13px; outline: none; font-family: 'Quicksand', sans-serif; transition: all 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: #ff80ab; box-shadow: 0 0 0 3px rgba(255, 128, 171, 0.1);
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .btn-deploy {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, #ff80ab, #ce93d8);
+      border: none; border-radius: 16px; color: white; font-weight: 700; font-size: 16px;
+      font-family: 'Fredoka', sans-serif; cursor: pointer; transition: all 0.3s; margin-top: 8px;
+      box-shadow: 0 4px 20px rgba(255, 128, 171, 0.4);
+    }
+    .btn-deploy:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(255, 128, 171, 0.5); }
+    .btn-deploy:disabled { background: #e0d0d8; box-shadow: none; cursor: not-allowed; transform: none; }
+
+    /* ── Network warning ── */
+    .network-warning {
+      display: none; padding: 10px 14px; background: #fff3e0; border: 1.5px solid #ffcc80;
+      border-radius: 12px; margin-bottom: 12px; font-size: 12px; color: #e65100; font-weight: 600;
+      align-items: center; gap: 8px;
+    }
+    .network-warning.show { display: flex; }
+    .btn-switch-network {
+      padding: 6px 14px; background: #ff9800; border: none; border-radius: 8px;
+      color: white; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;
+      font-family: 'Fredoka', sans-serif; transition: all 0.2s;
+    }
+    .btn-switch-network:hover { background: #f57c00; }
+
+    /* ── Result ── */
+    #result {
+      display: none; background: white; border-radius: 20px;
+      padding: 24px 28px; margin-top: 18px;
+      border: 2px solid #a5d6a7; box-shadow: 0 4px 20px rgba(165, 214, 167, 0.2);
+    }
+    #result h2 {
+      font-family: 'Fredoka', sans-serif; font-size: 15px; color: #66bb6a;
+      margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .result-row {
+      display: flex; justify-content: space-between; padding: 9px 0;
+      border-bottom: 1px solid #f0e8f0; font-size: 13px;
+    }
+    .result-row:last-child { border-bottom: none; }
+    .result-label { color: #b07090; font-weight: 600; }
+    .result-value {
+      color: #4a3040; font-family: monospace; word-break: break-all;
+      text-align: right; max-width: 60%; font-size: 12px;
+    }
+    .result-value a { color: #e75480; text-decoration: none; font-weight: 600; }
+    .result-value a:hover { text-decoration: underline; }
+
+    #error-box {
+      display: none; background: #fff5f5; border: 2px solid #ffcdd2;
+      border-radius: 20px; padding: 20px; margin-top: 18px;
+    }
+    #error-box strong { color: #e75480; font-family: 'Fredoka', sans-serif; font-size: 14px; }
+    #error-msg { color: #c06070; font-size: 11px; margin-top: 8px; white-space: pre-wrap; font-family: monospace; }
+
+    .spinner {
+      display: inline-block; width: 18px; height: 18px;
+      border: 3px solid white; border-top-color: transparent;
+      border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Preview Modal ── */
+    .preview-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 240, 245, 0.7); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center; z-index: 9999;
+    }
+    .preview-modal {
+      background: white; border-radius: 20px; width: 480px; max-width: 92vw;
+      max-height: 85vh; overflow: hidden;
+      box-shadow: 0 12px 50px rgba(255, 128, 171, 0.25); border: 1.5px solid #ffd6e8;
+    }
+    .preview-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 22px 14px; border-bottom: 1px solid #fff0f5;
+    }
+    .preview-header h3 {
+      font-family: 'Fredoka', sans-serif; font-size: 16px; color: #e75480; margin: 0;
+    }
+    .preview-close {
+      width: 30px; height: 30px; border: none; background: #fff5f8;
+      border-radius: 50%; color: #c9a0b0; font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .preview-close:hover { background: #ffe0ea; color: #e75480; }
+    .preview-body { padding: 16px 22px 22px; overflow-y: auto; max-height: 60vh; }
+    .preview-row {
+      display: flex; justify-content: space-between; padding: 8px 0;
+      border-bottom: 1px solid #fff0f5; font-size: 13px;
+    }
+    .preview-row:last-child { border-bottom: none; }
+    .preview-label { color: #b07090; font-weight: 600; }
+    .preview-value { color: #4a3040; font-family: monospace; font-size: 12px; text-align: right; max-width: 60%; word-break: break-all; }
+    .preview-footer { padding: 14px 22px; border-top: 1px solid #fff0f5; display: flex; gap: 10px; }
+    .preview-btn {
+      flex: 1; padding: 12px; border: none; border-radius: 12px;
+      font-family: 'Fredoka', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .preview-btn-cancel {
+      background: #fff5f8; color: #c9a0b0; border: 1.5px solid #ffd6e8;
+    }
+    .preview-btn-cancel:hover { background: #ffe0ea; color: #e75480; }
+    .preview-btn-confirm {
+      background: linear-gradient(135deg, #ff80ab, #ce93d8); color: white;
+      box-shadow: 0 4px 15px rgba(255, 128, 171, 0.35);
+    }
+    .preview-btn-confirm:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255, 128, 171, 0.45); }
+    .preview-btn-confirm:disabled { background: #e0d0d8; box-shadow: none; cursor: not-allowed; transform: none; }
+
+    .footer {
+      text-align: center; padding: 24px; font-size: 12px;
+      color: #d4a0b8; font-weight: 500; position: relative; z-index: 1;
+    }
+    .footer span { color: #ff80ab; }
+    .char-row { display: flex; justify-content: center; gap: 24px; padding: 16px 0; opacity: 0.15; pointer-events: none; }
+    .char-row span { font-size: 40px; image-rendering: pixelated; }
+
+    /* ── Tab System ── */
+    .tab-bar {
+      display: flex; flex-direction: row; align-items: center; justify-content: center;
+      gap: 8px; margin-top: 16px; margin-bottom: 8px;
+    }
+    .tab-btn {
+      padding: 10px 28px; border-radius: 14px; cursor: pointer;
+      font-family: 'Fredoka', sans-serif; font-size: 14px; font-weight: 700;
+      border: 1.5px solid #ffd6e8; background: white; color: #e75480;
+      transition: all 0.3s;
+    }
+    .tab-btn:hover { background: #fff5f8; }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #ff80ab, #ce93d8);
+      color: white; border-color: transparent;
+      box-shadow: 0 4px 15px rgba(255, 128, 171, 0.35);
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Reveal Status Grid ── */
+    .reveal-status {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .reveal-status-item {
+      padding: 10px 12px; border-radius: 10px;
+      background: #fff8fa; border: 1px solid #ffd6e8;
+    }
+    .reveal-status-label {
+      font-size: 10px; color: #b07090; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .reveal-status-value {
+      font-size: 13px; font-family: monospace; word-break: break-all; color: #4a3040;
+    }
+    .reveal-preview-box {
+      background: #f8f8f8; border-radius: 10px; padding: 12px;
+      font-family: monospace; font-size: 12px; color: #4a3040;
+      margin-top: 8px; word-break: break-all;
+    }
+    .validate-result {
+      padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 6px;
+    }
+    .validate-ok {
+      background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7;
+    }
+    .validate-fail {
+      background: #fff3e0; color: #e65100; border: 1px solid #ffcc80;
+    }
+
+    @media (max-width: 500px) {
+      .gate-box { width: 92%; padding: 36px 24px; }
+      .form-row { grid-template-columns: 1fr; }
+      .header h1 { font-size: 14px; }
+      .gate-char { display: none; }
+      .preview-modal { border-radius: 16px; }
+      .tab-btn { padding: 8px 20px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PASSWORD GATE -->
+  <div id="gate">
+    <div class="gate-chars">
+      <div class="gate-char" style="top:8%;left:8%;">
+        <svg width="64" height="64" viewBox="0 0 16 16" style="image-rendering:pixelated">
+          <rect x="5" y="1" width="1" height="1" fill="#ff80ab"/><rect x="6" y="1" width="1" height="1" fill="#ff80ab"/>
+          <rect x="4" y="2" width="1" height="1" fill="#ff80ab"/><rect x="5" y="2" width="1" height="1" fill="#fff"/><rect x="6" y="2" width="1" height="1" fill="#fff"/><rect x="7" y="2" width="1" height="1" fill="#ff80ab"/>
+          <rect x="3" y="3" width="5" height="1" fill="#fff"/>
+          <rect x="3" y="4" width="1" height="1" fill="#fff"/><rect x="4" y="4" width="1" height="1" fill="#fff"/><rect x="5" y="4" width="1" height="1" fill="#333"/><rect x="6" y="4" width="1" height="1" fill="#fff"/><rect x="7" y="4" width="1" height="1" fill="#333"/><rect x="8" y="4" width="1" height="1" fill="#fff"/>
+          <rect x="3" y="5" width="6" height="1" fill="#fff"/>
+          <rect x="4" y="6" width="4" height="1" fill="#fff"/>
+          <rect x="5" y="7" width="2" height="1" fill="#fff"/>
+        </svg>
+      </div>
+      <div class="gate-char" style="top:15%;right:10%;">
+        <svg width="64" height="64" viewBox="0 0 16 16" style="image-rendering:pixelated">
+          <rect x="3" y="3" width="8" height="2" fill="#66bb6a"/>
+          <rect x="4" y="5" width="6" height="1" fill="#66bb6a"/>
+          <rect x="5" y="6" width="4" height="1" fill="#66bb6a"/>
+        </svg>
+      </div>
+      <div class="gate-char" style="bottom:18%;left:10%;">
+        <svg width="64" height="64" viewBox="0 0 16 16" style="image-rendering:pixelated">
+          <rect x="4" y="3" width="7" height="3" fill="#333"/>
+          <rect x="5" y="7" width="5" height="1" fill="#fff"/>
+        </svg>
+      </div>
+      <div class="gate-char" style="bottom:12%;right:10%;">
+        <svg width="64" height="64" viewBox="0 0 16 16" style="image-rendering:pixelated">
+          <rect x="5" y="2" width="4" height="1" fill="#ffd740"/>
+          <rect x="3" y="3" width="8" height="3" fill="#ffd740"/>
+          <rect x="4" y="6" width="6" height="1" fill="#ffd740"/>
+        </svg>
+      </div>
+      <div class="gate-char" style="top:50%;left:4%;">
+        <svg width="64" height="64" viewBox="0 0 16 16" style="image-rendering:pixelated">
+          <rect x="4" y="2" width="8" height="4" fill="#fff"/>
+          <rect x="5" y="6" width="6" height="1" fill="#fff"/>
+        </svg>
+      </div>
+      <div class="gate-char" style="top:45%;right:5%;">
+        <svg width="64" height="64" viewBox="0 0 16 16" style="image-rendering:pixelated">
+          <rect x="4" y="3" width="8" height="3" fill="#e3f2fd"/>
+          <rect x="5" y="6" width="6" height="1" fill="#e3f2fd"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="gate-box">
+      <div class="gate-kitty">🎀</div>
+      <h1>NFT Deploy Tool</h1>
+      <p class="subtitle">Enter password to continue ♡</p>
+      <input type="password" id="pw-input" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <button onclick="doLogin()">Enter ♡</button>
+      <div class="gate-error" id="gate-error">Wrong password ♡</div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="app">
+    <div class="header">
+      <div class="logo">
+        <div class="logo-icon">🐱</div>
+        <h1>NFT Deploy</h1>
+      </div>
+      <span class="badge">✿ Multi-Chain</span>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="container" style="margin-top:12px;">
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('deploy')">✨ Deploy</button>
+        <button class="tab-btn" onclick="switchTab('reveal')">🔓 Reveal</button>
+      </div>
+    </div>
+
+    <!-- ═══ DEPLOY PANEL ═══ -->
+    <div id="deploy-panel" class="container tab-panel active">
+      <!-- Wallet Connect -->
+      <div class="card" id="wallet-card">
+        <div class="char-deco">🦊</div>
+        <h2><span class="icon">🔐</span> Wallet</h2>
+        <div id="wallet-status"></div>
+      </div>
+
+      <!-- Network -->
+      <div class="card">
+        <div class="char-deco">🐸</div>
+        <h2><span class="icon">🌐</span> Network</h2>
+        <div id="network-warning" class="network-warning">
+          <span>⚠️</span>
+          <span id="network-warning-text">Wrong network</span>
+          <button class="btn-switch-network" id="btn-switch-network" onclick="switchToSelectedNetwork()">Switch</button>
+        </div>
+        <div class="form-group">
+          <label>Target Chain</label>
+          <select id="network" onchange="onNetworkChange()"></select>
+        </div>
+      </div>
+
+      <!-- Collection -->
+      <div class="card">
+        <div class="char-deco">🐧</div>
+        <h2><span class="icon">💎</span> Collection</h2>
+        <div class="form-group">
+          <label>Collection Name *</label>
+          <input type="text" id="name" placeholder="My NFT Collection">
+        </div>
+        <div class="form-group">
+          <label>Symbol *</label>
+          <input type="text" id="symbol" placeholder="MNC" style="width: 140px;">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Max Supply *</label>
+            <input type="number" id="supply" value="10000" min="1">
+          </div>
+          <div class="form-group">
+            <label>Mint Price (ETH) *</label>
+            <input type="text" id="price" value="0.01">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Max Mint Per Wallet *</label>
+          <input type="number" id="perWallet" value="5" min="1" style="width: 140px;">
+        </div>
+        <div class="form-group">
+          <label>Creator Fee % (optional)</label>
+          <input type="number" id="royaltyFee" value="0" min="0" max="50" step="0.5" style="width: 140px;">
+        </div>
+      </div>
+
+      <!-- Metadata -->
+      <div class="card">
+        <div class="char-deco">🐻</div>
+        <h2><span class="icon">🏷️</span> Metadata</h2>
+        <div class="form-group">
+          <label>Hidden URI (pre-reveal)</label>
+          <input type="text" id="hiddenUri" placeholder="https://example.com/hidden.json">
+        </div>
+        <div class="form-group">
+          <label>Base URI (post-reveal) *</label>
+          <input type="text" id="baseUri" placeholder="https://example.com/metadata/">
+        </div>
+      </div>
+
+      <button class="btn-deploy" id="btn-deploy" onclick="doDeploy()">✨ Deploy Contract ✨</button>
+
+      <!-- Result -->
+      <div id="result">
+        <h2>🎉 Deployed Successfully!</h2>
+        <div class="result-row">
+          <span class="result-label">Network</span>
+          <span class="result-value" id="r-network"></span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Contract</span>
+          <span class="result-value" id="r-address"></span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Deployer</span>
+          <span class="result-value" id="r-deployer"></span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">TX Hash</span>
+          <span class="result-value" id="r-tx"></span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Explorer</span>
+          <span class="result-value" id="r-explorer"></span>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div id="error-box">
+        <strong>😿 Deploy Failed</strong>
+        <pre id="error-msg"></pre>
+      </div>
+
+      <div class="char-row">
+        <span>🐱</span><span>🐸</span><span>🐧</span><span>🐻</span><span>🐰</span><span>🐶</span>
+      </div>
+    </div>
+
+    <!-- ═══ REVEAL PANEL ═══ -->
+    <div id="reveal-panel" class="container tab-panel">
+      <!-- Wallet Connect (shared) -->
+      <div class="card">
+        <div class="char-deco">🦊</div>
+        <h2><span class="icon">🔐</span> Wallet</h2>
+        <div id="reveal-wallet-status"></div>
+      </div>
+
+      <!-- Network -->
+      <div class="card">
+        <div class="char-deco">🐸</div>
+        <h2><span class="icon">🌐</span> Network</h2>
+        <div id="reveal-network-warning" class="network-warning">
+          <span>⚠️</span>
+          <span id="reveal-network-warning-text">Wrong network</span>
+          <button class="btn-switch-network" onclick="switchRevealToSelectedNetwork()">Switch</button>
+        </div>
+        <div class="form-group">
+          <label>Target Chain</label>
+          <select id="reveal-network" onchange="onRevealNetworkChange()"></select>
+        </div>
+      </div>
+
+      <!-- Contract -->
+      <div class="card">
+        <div class="char-deco">📄</div>
+        <h2><span class="icon">📜</span> Contract</h2>
+        <div class="form-group">
+          <label>Contract Address *</label>
+          <input type="text" id="reveal-contract" placeholder="0x...">
+        </div>
+        <button class="btn-deploy" id="btn-read-status" onclick="readRevealStatus()">📖 Read Status</button>
+      </div>
+
+      <!-- Status (hidden until read) -->
+      <div class="card" id="reveal-status-card" style="display:none;">
+        <div class="char-deco">🔍</div>
+        <h2><span class="icon">📊</span> Contract Status</h2>
+        <div class="reveal-status">
+          <div class="reveal-status-item">
+            <div class="reveal-status-label">Revealed</div>
+            <div class="reveal-status-value" id="rv-revealed">—</div>
+          </div>
+          <div class="reveal-status-item">
+            <div class="reveal-status-label">Owner</div>
+            <div class="reveal-status-value" id="rv-owner">—</div>
+          </div>
+          <div class="reveal-status-item">
+            <div class="reveal-status-label">Max Supply</div>
+            <div class="reveal-status-value" id="rv-maxSupply">—</div>
+          </div>
+          <div class="reveal-status-item">
+            <div class="reveal-status-label">Base URI</div>
+            <div class="reveal-status-value" id="rv-baseURI">—</div>
+          </div>
+          <div class="reveal-status-item" style="grid-column: span 2;">
+            <div class="reveal-status-label">Hidden URI</div>
+            <div class="reveal-status-value" id="rv-hiddenURI">—</div>
+          </div>
+        </div>
+
+        <!-- tokenURI Preview -->
+        <div style="margin-top:14px;">
+          <button class="btn-deploy" id="btn-toggle-preview" onclick="previewTokenURI()" style="font-size:13px;padding:10px;">🔍 Preview tokenURI</button>
+          <div id="preview-tokenuri-section" style="display:none;margin-top:10px;">
+            <div class="form-group">
+              <label>Token ID</label>
+              <input type="number" id="preview-tokenid" value="1" min="0">
+            </div>
+            <button class="btn-deploy" id="btn-do-preview" onclick="doPreviewTokenURI()" style="font-size:13px;padding:10px;">Look up</button>
+            <div class="reveal-preview-box" id="preview-tokenuri-result" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reveal Form (hidden until status read) -->
+      <div class="card" id="reveal-form-card" style="display:none;">
+        <div class="char-deco">🔓</div>
+        <h2><span class="icon">🔓</span> Reveal Collection</h2>
+        <div id="reveal-already-revealed" style="display:none;padding:12px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;color:#2e7d32;font-weight:600;font-size:13px;margin-bottom:12px;">
+          ✅ This collection has already been revealed!
+        </div>
+        <div id="reveal-not-owner" style="display:none;padding:12px;background:#fff3e0;border:1px solid #ffcc80;border-radius:10px;color:#e65100;font-weight:600;font-size:13px;margin-bottom:12px;">
+          ⚠️ You are not the owner of this contract. Only the owner can reveal.
+        </div>
+        <div id="reveal-form-body">
+          <div class="form-group">
+            <label>New Base URI (post-reveal) *</label>
+            <input type="text" id="reveal-new-base-uri" placeholder="https://example.com/metadata/">
+          </div>
+          <button class="btn-deploy" id="btn-validate-reveal" onclick="validateRevealMetadata()" style="font-size:13px;padding:10px;margin-bottom:12px;">✅ Validate Metadata URLs</button>
+          <div id="reveal-validate-results"></div>
+          <button class="btn-deploy" id="btn-do-reveal" onclick="doReveal()" style="margin-top:8px;">🔓 Confirm Reveal</button>
+        </div>
+      </div>
+
+      <!-- Result (hidden until reveal succeeds) -->
+      <div class="card" id="reveal-result-card" style="display:none;">
+        <div class="char-deco">🎉</div>
+        <h2><span class="icon">🎉</span> Reveal Successful!</h2>
+        <div class="reveal-status">
+          <div class="reveal-status-item" style="grid-column:span 2;">
+            <div class="reveal-status-label">TX Hash</div>
+            <div class="reveal-status-value" id="reveal-r-tx">—</div>
+          </div>
+          <div class="reveal-status-item" style="grid-column:span 2;">
+            <div class="reveal-status-label">Explorer</div>
+            <div class="reveal-status-value" id="reveal-r-explorer">—</div>
+          </div>
+        </div>
+        <button class="btn-deploy" onclick="refreshOpenSea()" style="margin-top:12px;font-size:13px;padding:10px;">🖼️ Refresh on OpenSea</button>
+      </div>
+
+      <!-- Error -->
+      <div id="reveal-error-box" style="display:none;background:#fff5f5;border:2px solid #ffcdd2;border-radius:20px;padding:20px;margin-top:18px;">
+        <strong style="color:#e75480;font-family:'Fredoka',sans-serif;font-size:14px;">😿 Reveal Failed</strong>
+        <pre id="reveal-error-msg" style="color:#c06070;font-size:11px;margin-top:8px;white-space:pre-wrap;font-family:monospace;"></pre>
+      </div>
+
+      <div class="char-row">
+        <span>🐱</span><span>🐸</span><span>🐧</span><span>🐻</span><span>🐰</span><span>🐶</span>
+      </div>
+    </div>
+
+    <div class="footer">NFT Deploy Tool ♡ <span>Multi-Chain ERC721</span></div>
+  </div>
+
+  <!-- WalletConnect v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2/dist/index.umd.js"></script>
+
+  <!-- Scripts -->
+  <script src="/js/registry.js?v=5"></script>
+  <script src="/js/adapters/evm.js?v=5"></script>
+  <script src="/js/adapters/solana.js?v=5"></script>
+  <script src="/js/adapters/move.js?v=5"></script>
+  <script src="/js/adapters/walletconnect.js?v=5"></script>
+  <script src="/js/reveal-abi.js?v=5"></script>
+  <script src="/js/wallet-manager.js?v=5"></script>
+  <script src="/js/ui.js?v=5"></script>
+  <script src="/js/contract-abi.js?v=5"></script>
+
+  <script>
+    // ══════════════════════════════════════════════════════════════
+    // GLOBAL STATE
+    // ══════════════════════════════════════════════════════════════
+    let walletManager, walletUI;
+    let contractData = null;  // { abi, bytecode } loaded from /contract.json
+    let networks = [];        // from /api/networks
+
+    // Chain ID mapping for server network IDs → actual chainIds
+    const NETWORK_CHAIN_MAP = {
+      sepolia: 11155111, mainnet: 1, basesepolia: 84532, base: 8453,
+      amoy: 80002, polygon: 137, bscTestnet: 97, bsc: 56,
+      arbitrumSepolia: 421614, arbitrum: 42161, optimismSepolia: 11155420,
+      optimism: 10, fuji: 43113, avalanche: 43114, cronosTestnet: 338,
+      cronos: 25,
+    };
+
+    const EXPLORER_MAP = {
+      1: 'https://etherscan.io', 11155111: 'https://sepolia.etherscan.io',
+      137: 'https://polygonscan.com', 80002: 'https://amoy.polygonscan.com',
+      56: 'https://bscscan.com', 97: 'https://testnet.bscscan.com',
+      42161: 'https://arbiscan.io', 421614: 'https://sepolia.arbiscan.io',
+      10: 'https://optimistic.etherscan.io', 11155420: 'https://sepolia-optimism.etherscan.io',
+      8453: 'https://basescan.org', 84532: 'https://sepolia.basescan.org',
+      43114: 'https://snowtrace.io', 43113: 'https://testnet.snowtrace.io',
+      25: 'https://cronoscan.com', 338: 'https://testnet.cronoscan.com',
+    };
+
+    // ══════════════════════════════════════════════════════════════
+    // INIT
+    // ══════════════════════════════════════════════════════════════
+    window.addEventListener('DOMContentLoaded', function () {
+      walletManager = new window.WalletManager();
+      walletManager.init();
+      walletUI = new window.WalletUI(walletManager);
+
+      // Subscribe to wallet state changes → update network warning
+      walletManager.subscribe(function (state) {
+        updateNetworkWarning();
+        updateRevealNetworkWarning();
+        syncRevealWallet();
+      });
+
+      // Load contract ABI/bytecode
+      fetch('/contract.json')
+        .then(r => r.json())
+        .then(data => { contractData = data; })
+        .catch(e => console.warn('Failed to load contract.json:', e));
+    });
+
+    // ══════════════════════════════════════════════════════════════
+    // TAB SYSTEM
+    // ══════════════════════════════════════════════════════════════
+    function switchTab(name) {
+      // Update buttons
+      document.querySelectorAll('.tab-btn').forEach(function (btn) { btn.classList.remove('active'); });
+      event.target.classList.add('active');
+
+      // Update panels
+      document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
+      var panel = document.getElementById(name + '-panel');
+      if (panel) panel.classList.add('active');
+
+      // Sync reveal wallet status when switching to reveal tab
+      if (name === 'reveal') {
+        syncRevealWallet();
+        loadRevealNetworks();
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // AUTH
+    // ══════════════════════════════════════════════════════════════
+    async function doLogin() {
+      const pw = document.getElementById('pw-input').value;
+      try {
+        const res = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw }),
+        });
+        if (res.ok) {
+          document.getElementById('gate').style.display = 'none';
+          document.getElementById('app').style.display = 'block';
+          loadNetworks();
+          walletUI.init('wallet-status');
+          syncRevealWallet();
+        } else {
+          document.getElementById('gate-error').style.display = 'block';
+        }
+      } catch (e) {
+        document.getElementById('gate-error').style.display = 'block';
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // NETWORKS (Deploy tab)
+    // ══════════════════════════════════════════════════════════════
+    async function loadNetworks() {
+      try {
+      const res = await fetch('/api/networks');
+      if (!res.ok) throw new Error('Failed to load networks');
+      networks = await res.json();
+      const sel = document.getElementById('network');
+      let currentChain = '';
+      networks.forEach(function (n) {
+        if (n.chain !== currentChain) {
+          if (currentChain !== '') {
+            const sep = document.createElement('option');
+            sep.disabled = true;
+            sep.textContent = '─────────────────';
+            sel.appendChild(sep);
+          }
+          currentChain = n.chain;
+        }
+        const opt = document.createElement('option');
+        opt.value = n.id;
+        opt.textContent = (n.testnet ? '🧪 ' : ' 🟢 ') + n.name;
+        sel.appendChild(opt);
+      });
+      } catch (e) {
+        console.error('[Networks] Failed to load:', e);
+        const sel = document.getElementById('network');
+        const opt = document.createElement('option');
+        opt.textContent = 'Failed to load networks';
+        opt.disabled = true;
+        sel.appendChild(opt);
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // REVEAL NETWORKS
+    // ══════════════════════════════════════════════════════════════
+    function loadRevealNetworks() {
+      var sel = document.getElementById('reveal-network');
+      if (!sel || sel.options.length > 1) return; // already populated
+      if (networks.length === 0) {
+        // Try to load from API
+        fetch('/api/networks')
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            networks = data;
+            populateRevealNetworks(sel);
+          })
+          .catch(function () {});
+      } else {
+        populateRevealNetworks(sel);
+      }
+    }
+
+    function populateRevealNetworks(sel) {
+      var currentChain = '';
+      networks.forEach(function (n) {
+        if (n.chain !== currentChain) {
+          if (currentChain !== '') {
+            var sep = document.createElement('option');
+            sep.disabled = true;
+            sep.textContent = '─────────────────';
+            sel.appendChild(sep);
+          }
+          currentChain = n.chain;
+        }
+        var opt = document.createElement('option');
+        opt.value = n.id;
+        opt.textContent = (n.testnet ? '🧪 ' : ' 🟢 ') + n.name;
+        sel.appendChild(opt);
+      });
+    }
+
+    function onRevealNetworkChange() {
+      updateRevealNetworkWarning();
+    }
+
+    function updateRevealNetworkWarning() {
+      var warning = document.getElementById('reveal-network-warning');
+      var warningText = document.getElementById('reveal-network-warning-text');
+      var state = walletManager.getState();
+      if (!warning) return;
+
+      if (!state.connected || state.ecosystem !== 'evm') {
+        warning.classList.remove('show');
+        return;
+      }
+      var selectedId = document.getElementById('reveal-network').value;
+      var selectedChainId = NETWORK_CHAIN_MAP[selectedId];
+      var walletChainId = state.chainId;
+
+      if (selectedChainId && walletChainId && selectedChainId !== walletChainId) {
+        warningText.textContent = 'Wallet is on chain #' + walletChainId + ', but ' + selectedId + ' is #' + selectedChainId;
+        warning.classList.add('show');
+      } else {
+        warning.classList.remove('show');
+      }
+    }
+
+    function switchRevealToSelectedNetwork() {
+      var selectedId = document.getElementById('reveal-network').value;
+      var selectedChainId = NETWORK_CHAIN_MAP[selectedId];
+      if (!selectedChainId) return;
+      walletManager.switchNetwork(selectedChainId).then(function () {
+        updateRevealNetworkWarning();
+      }).catch(function (err) {
+        showRevealError('Failed to switch network: ' + (err.message || 'Unknown error'));
+      });
+    }
+
+    function syncRevealWallet() {
+      var el = document.getElementById('reveal-wallet-status');
+      if (!el) return;
+      var state = walletManager.getState();
+      if (state.connected) {
+        el.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;">' +
+          '<span style="color:#2e7d32;font-size:12px;">✅ Connected: <code style="font-family:monospace;">' +
+          state.address.slice(0, 6) + '...' + state.address.slice(-4) + '</code></span></div>';
+      } else {
+        el.innerHTML = '<div style="padding:8px 12px;background:#fff3e0;border:1px solid #ffcc80;border-radius:10px;color:#e65100;font-size:12px;font-weight:600;">⚠️ Not connected — connect wallet in Deploy tab first</div>';
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // NETWORK WARNING — show when wallet chain doesn't match dropdown (Deploy tab)
+    // ══════════════════════════════════════════════════════════════
+    function onNetworkChange() {
+      updateNetworkWarning();
+    }
+
+    function updateNetworkWarning() {
+      const warning = document.getElementById('network-warning');
+      const warningText = document.getElementById('network-warning-text');
+      const state = walletManager.getState();
+
+      if (!state.connected || state.ecosystem !== 'evm') {
+        warning.classList.remove('show');
+        return;
+      }
+
+      const selectedId = document.getElementById('network').value;
+      const selectedChainId = NETWORK_CHAIN_MAP[selectedId];
+      const walletChainId = state.chainId;
+
+      if (selectedChainId && walletChainId && selectedChainId !== walletChainId) {
+        warningText.textContent = 'Wallet is on chain #' + walletChainId + ', but ' + selectedId + ' is #' + selectedChainId;
+        warning.classList.add('show');
+      } else {
+        warning.classList.remove('show');
+      }
+    }
+
+    async function switchToSelectedNetwork() {
+      const selectedId = document.getElementById('network').value;
+      const selectedChainId = NETWORK_CHAIN_MAP[selectedId];
+      if (!selectedChainId) return;
+
+      try {
+        await walletManager.switchNetwork(selectedChainId);
+        updateNetworkWarning();
+      } catch (err) {
+        showError('Failed to switch network: ' + (err.message || 'Unknown error'));
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // DEPLOY — CLIENT-SIDE VIA CONNECTED WALLET
+    // ══════════════════════════════════════════════════════════════
+    async function doDeploy() {
+      const btn = document.getElementById('btn-deploy');
+      const resultBox = document.getElementById('result');
+      const errorBox = document.getElementById('error-box');
+
+      // ── Step 1: Validate wallet connected ──
+      const state = walletManager.getState();
+      if (!state.connected) {
+        showError('Wallet not connected. Please connect your wallet first.');
+        return;
+      }
+
+      if (state.ecosystem !== 'evm') {
+        showError('Only EVM wallets are supported for contract deployment. Please connect an EVM wallet (MetaMask, Rabby, OKX, etc.)');
+        return;
+      }
+
+      // ── Step 2: Validate chain matches ──
+      const selectedId = document.getElementById('network').value;
+      const selectedChainId = NETWORK_CHAIN_MAP[selectedId];
+      if (selectedChainId && state.chainId !== selectedChainId) {
+        showError('Wrong network. Your wallet is on chain #' + state.chainId + ', but ' + selectedId + ' requires chain #' + selectedChainId + '.\n\nPlease click "Switch" next to the network dropdown first.');
+        return;
+      }
+
+      // ── Step 3: Validate form ──
+      const data = {
+        name: document.getElementById('name').value.trim(),
+        symbol: document.getElementById('symbol').value.trim(),
+        supply: parseInt(document.getElementById('supply').value),
+        price: document.getElementById('price').value.trim(),
+        perWallet: parseInt(document.getElementById('perWallet').value),
+        royaltyFee: parseFloat(document.getElementById('royaltyFee').value) || 0,
+        hiddenUri: document.getElementById('hiddenUri').value.trim(),
+        baseUri: document.getElementById('baseUri').value.trim(),
+      };
+
+      if (!data.name || !data.symbol || !data.supply || !data.price || !data.perWallet || !data.baseUri) {
+        showError('Please fill all required fields ♡');
+        return;
+      }
+
+      // ── Step 4: Validate contract data loaded ──
+      if (!contractData || !contractData.bytecode) {
+        showError('Contract bytecode not loaded. Please refresh the page and try again.');
+        return;
+      }
+
+      // ── Step 5: Show transaction preview ──
+      showDeployPreview(data, selectedId, selectedChainId);
+    }
+
+    function showDeployPreview(data, networkId, chainId) {
+      // Remove existing preview
+      const existing = document.querySelector('.preview-overlay');
+      if (existing) existing.remove();
+
+      const explorerBase = EXPLORER_MAP[chainId] || '';
+      const overlay = document.createElement('div');
+      overlay.className = 'preview-overlay';
+      overlay.onclick = function (e) { if (e.target === overlay) overlay.remove(); };
+
+      const modal = document.createElement('div');
+      modal.className = 'preview-modal';
+
+      // Header
+      const header = document.createElement('div');
+      header.className = 'preview-header';
+      header.innerHTML = '<h3>📋 Transaction Preview</h3>';
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'preview-close';
+      closeBtn.textContent = '✕';
+      closeBtn.onclick = function () { overlay.remove(); };
+      header.appendChild(closeBtn);
+
+      // Body
+      const body = document.createElement('div');
+      body.className = 'preview-body';
+
+      const rows = [
+        { label: 'Action', value: 'Deploy NFTCollection Contract' },
+        { label: 'Network', value: networkId + ' (Chain #' + chainId + ')' },
+        { label: 'From', value: walletManager.address },
+        { label: 'Name', value: data.name },
+        { label: 'Symbol', value: data.symbol },
+        { label: 'Max Supply', value: data.supply.toString() },
+        { label: 'Mint Price', value: data.price + ' ETH' },
+        { label: 'Max Per Wallet', value: data.perWallet.toString() },
+        { label: 'Creator Fee', value: data.royaltyFee + '%' },
+        { label: 'Hidden URI', value: data.hiddenUri },
+        { label: 'Base URI', value: data.baseUri },
+      ];
+
+      rows.forEach(function (r) {
+        const row = document.createElement('div');
+        row.className = 'preview-row';
+        row.innerHTML = '<span class="preview-label">' + r.label + '</span><span class="preview-value">' + r.value + '</span>';
+        body.appendChild(row);
+      });
+
+      // Footer
+      const footer = document.createElement('div');
+      footer.className = 'preview-footer';
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'preview-btn preview-btn-cancel';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.onclick = function () { overlay.remove(); };
+
+      const confirmBtn = document.createElement('button');
+      confirmBtn.className = 'preview-btn preview-btn-confirm';
+      confirmBtn.textContent = '🔮 Confirm Deploy';
+      confirmBtn.onclick = function () {
+        overlay.remove();
+        executeDeploy(data, networkId, chainId);
+      };
+
+      footer.appendChild(cancelBtn);
+      footer.appendChild(confirmBtn);
+
+      modal.appendChild(header);
+      modal.appendChild(body);
+      modal.appendChild(footer);
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+    }
+
+    async function executeDeploy(data, networkId, chainId) {
+      const btn = document.getElementById('btn-deploy');
+      const resultBox = document.getElementById('result');
+      const errorBox = document.getElementById('error-box');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Waiting for wallet approval...';
+      resultBox.style.display = 'none';
+      errorBox.style.display = 'none';
+
+      try {
+        // Convert mint price to wei (hex)
+        const priceEth = parseFloat(data.price);
+        const priceWei = BigInt(Math.round(priceEth * 1e18));
+
+        // Encode constructor arguments
+        const abi = contractData.abi;
+        const bytecode = contractData.bytecode.startsWith('0x') ? contractData.bytecode : '0x' + contractData.bytecode;
+
+        // Use ethers.js if available for ABI encoding
+        let encodedArgs;
+        if (window.ethers) {
+          const coder = new window.ethers.utils.AbiCoder();
+          encodedArgs = coder.encode(
+            ['string', 'string', 'uint256', 'uint256', 'uint256', 'string', 'string'],
+            [data.name, data.symbol, data.supply, priceWei, data.perWallet, data.hiddenUri || data.baseUri, data.baseUri]
+          );
+        } else {
+          // Manual ABI encoding fallback
+          encodedArgs = manualEncodeConstructor(data, priceWei);
+        }
+
+        const deployData = bytecode + encodedArgs.slice(2); // remove 0x prefix from encoded args
+
+        // ── Estimate gas via public RPC (OKX/MetaMask internal estimation often fails) ──
+        let gasLimit = '0x3D0900'; // 4M default fallback
+        // Map chainId → working public RPC for gas estimation
+        const _chainRPCs = {
+          1: 'https://ethereum-rpc.publicnode.com',
+          11155111: 'https://ethereum-sepolia-rpc.publicnode.com',
+          137: 'https://polygon-bor-rpc.publicnode.com',
+          80002: 'https://rpc-amoy.polygon.technology',
+          56: 'https://bsc-rpc.publicnode.com',
+          97: 'https://bsc-testnet-rpc.publicnode.com',
+          42161: 'https://arbitrum-one-rpc.publicnode.com',
+          421614: 'https://arbitrum-sepolia-rpc.publicnode.com',
+          10: 'https://optimism-rpc.publicnode.com',
+          11155420: 'https://sepolia.optimism.io',
+          8453: 'https://mainnet.base.org',
+          84532: 'https://sepolia.base.org',
+          43114: 'https://avalanche-c-chain-rpc.publicnode.com',
+          43113: 'https://avalanche-fuji-c-chain-rpc.publicnode.com',
+          250: 'https://rpc2.fantom.network',
+          25: 'https://evm.cronos.org',
+          100: 'https://rpc.gnosis.gateway.fm',
+          146: 'https://rpc.soniclabs.com',
+          534352: 'https://rpc.scroll.io',
+          59144: 'https://rpc.linea.build',
+          5000: 'https://mantle.publicnode.com',
+          81457: 'https://rpc.blast.io',
+          7777777: 'https://rpc.zora.energy',
+          204: 'https://opbnb-mainnet-rpc.bnbchain.org',
+          42220: 'https://forno.celo.org',
+          7000: 'https://zetachain-evm.blockpi.network/v1/rpc/public',
+          80094: 'https://rpc.berachain.com',
+          169: 'https://pacific-rpc.manta.network/http',
+          167000: 'https://rpc.mainnet.taiko.xyz',
+          1116: 'https://rpc.coredao.org',
+          2020: 'https://api.roninchain.com/rpc',
+          33139: 'https://rpc.apechain.com',
+          34443: 'https://mainnet.mode.network',
+          1088: 'https://andromeda.metis.io/?owner=588',
+          252: 'https://rpc.frax.com',
+          43434: null,  // No reliable public RPC, will use 4M default
+          480: 'https://worldchain-mainnet.g.alchemy.com/public',
+          13371: 'https://rpc.immutable.com',
+          1284: 'https://rpc.api.moonbeam.network',
+          1285: 'https://rpc.moonriver.moonbeam.network',
+        };
+        const _rpc = _chainRPCs[chainId];
+        const _gasRPCs = _rpc
+          ? [_rpc, 'https://ethereum-rpc.publicnode.com']
+          : ['https://ethereum-rpc.publicnode.com'];
+        for (const rpcUrl of _gasRPCs) {
+          try {
+            const _resp = await fetch(rpcUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                jsonrpc: '2.0', id: 1, method: 'eth_estimateGas',
+                params: [{ from: walletManager.address, data: deployData }]
+              })
+            });
+            const _json = await _resp.json();
+            if (_json.result && !_json.error) {
+              const gasNum = parseInt(_json.result, 16);
+              gasLimit = '0x' + Math.ceil(gasNum * 1.2).toString(16);
+              console.log('[Deploy] Gas estimated via', rpcUrl, ':', gasNum, '→ buffer:', parseInt(gasLimit, 16));
+              break;
+            }
+          } catch (e) { console.warn('[Deploy] Gas RPC failed:', rpcUrl, e.message); }
+        }
+
+        // ── Send transaction via connected wallet ──
+        // This will trigger the wallet popup for user approval
+        const txHash = await walletManager.sendTransaction({
+          data: deployData,
+          gas: gasLimit,
+          // No 'to' field = contract creation
+          value: '0x0',
+        });
+
+        // ── TX sent — now wait for confirmation ──
+        btn.innerHTML = '<span class="spinner"></span>Transaction sent! Waiting for confirmation...';
+
+        // Get the explorer URL
+        const explorerBase = EXPLORER_MAP[chainId] || 'https://etherscan.io';
+
+        // Try to get receipt via provider
+        let contractAddress = null;
+        let attempts = 0;
+        while (!contractAddress && attempts < 30) {
+          try {
+            // Try wallet provider first, then public RPC
+            const receiptRPCs = [
+              null, // try wallet provider first
+              _chainRPCs[chainId] || null
+            ];
+            for (const rpcUrl of receiptRPCs) {
+              try {
+                let receipt;
+                if (!rpcUrl && walletManager.currentAdapter?.adapter?.provider) {
+                  receipt = await walletManager.currentAdapter.adapter.provider.request({
+                    method: 'eth_getTransactionReceipt',
+                    params: [txHash]
+                  });
+                } else if (rpcUrl) {
+                  const resp = await fetch(rpcUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({jsonrpc:'2.0',id:1,method:'eth_getTransactionReceipt',params:[txHash]})
+                  });
+                  const json = await resp.json();
+                  receipt = json.result;
+                }
+                if (receipt) {
+                  contractAddress = receipt.contractAddress;
+                  break;
+                }
+              } catch (_) {}
+            }
+          } catch (_) {}
+          await new Promise(r => setTimeout(r, 3000));
+          attempts++;
+        }
+        // Always show result even if receipt not yet available
+        console.log('[Deploy] Receipt polling done. Contract:', contractAddress, 'TX:', txHash);
+
+        // Show result
+        document.getElementById('r-network').textContent = networkId + ' (Chain #' + chainId + ')';
+        document.getElementById('r-address').textContent = contractAddress || '(pending confirmation...)';
+        document.getElementById('r-deployer').textContent = walletManager.address;
+        document.getElementById('r-tx').innerHTML = '<a href="' + explorerBase + '/tx/' + txHash + '" target="_blank">' + txHash.slice(0, 20) + '...</a>';
+        document.getElementById('r-explorer').innerHTML = contractAddress
+          ? '<a href="' + explorerBase + '/address/' + contractAddress + '" target="_blank">View on Explorer ♡</a>'
+          : '<a href="' + explorerBase + '/tx/' + txHash + '" target="_blank">View TX on Explorer ♡</a>';
+        resultBox.style.display = 'block';
+
+      } catch (err) {
+        console.error('[Deploy] Error:', err);
+
+        // ── Error handling per Remm's requirements ──
+        let msg = err.message || String(err);
+
+        if (err.code === 4001 || msg.includes('user rejected') || msg.includes('User rejected')) {
+          msg = 'User rejected request. Deploy cancelled.';
+        } else if (msg.includes('popup') || msg.includes('does not open') || msg.includes('Wallet popup')) {
+          msg = 'Wallet popup did not open. Please unlock your wallet and try again.';
+        } else if (msg.includes('wrong network') || msg.includes('chain')) {
+          msg = 'Wrong network. Please switch network first.';
+        } else if (msg.includes('not detected') || msg.includes('not installed')) {
+          msg = 'Wallet not detected. Please install MetaMask or another EVM wallet.';
+        }
+
+        showError(msg);
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '✨ Deploy Contract ✨';
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // MANUAL ABI ENCODER — fallback when ethers.js not loaded
+    // ══════════════════════════════════════════════════════════════
+    function manualEncodeConstructor(data, priceWei) {
+      // ABI encoding for constructor(string,string,uint256,uint256,uint256,string,string)
+      // Each static type is 32 bytes, strings are offset + data
+      const types = ['string', 'string', 'uint256', 'uint256', 'uint256', 'string', 'string'];
+      const values = [data.name, data.symbol, BigInt(data.supply), priceWei, BigInt(data.perWallet), data.hiddenUri || data.baseUri, data.baseUri];
+
+      // All types are dynamic (strings) or static (uint256)
+      // For simplicity, use ethers.js. If not available, throw.
+      throw new Error('ABI encoder requires ethers.js. Please include ethers.js in the page.');
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // REVEAL — READ CONTRACT STATE
+    // ══════════════════════════════════════════════════════════════
+    async function readRevealStatus() {
+      var contractAddr = document.getElementById('reveal-contract').value.trim();
+      if (!contractAddr || !contractAddr.startsWith('0x')) {
+        showRevealError('Please enter a valid contract address (0x...)');
+        return;
+      }
+
+      var state = walletManager.getState();
+      if (!state.connected || state.ecosystem !== 'evm') {
+        showRevealError('Wallet not connected. Please connect your wallet first.');
+        return;
+      }
+
+      var btn = document.getElementById('btn-read-status');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Reading...';
+      document.getElementById('reveal-error-box').style.display = 'none';
+
+      try {
+        // Use reveal ABI from reveal-abi.js
+        var revealABI = window.REVEAL_ABI || [
+          'function revealed() view returns (bool)',
+          'function owner() view returns (address)',
+          'function hiddenURI() view returns (string)',
+          'function baseURI() view returns (string)',
+          'function maxSupply() view returns (uint256)',
+          'function tokenURI(uint256 tokenId) view returns (string)',
+          'function reveal(string newBaseURI)',
+        ];
+        var iface = new window.ethers.utils.Interface(revealABI);
+
+        // Read revealed, hiddenURI, baseURI, maxSupply, owner via multicall
+        var calldata1 = iface.encodeFunctionData('revealed');
+        var calldata2 = iface.encodeFunctionData('owner');
+        var calldata3 = iface.encodeFunctionData('hiddenURI');
+        var calldata4 = iface.encodeFunctionData('baseURI');
+        var calldata5 = iface.encodeFunctionData('maxSupply');
+
+        var rpcUrl = getRevealRPCUrl();
+        if (!rpcUrl) {
+          showRevealError('Could not find RPC for the selected network. Please try a different chain.');
+          btn.disabled = false;
+          btn.innerHTML = '📖 Read Status';
+          return;
+        }
+
+        // Execute each call via wallet provider
+        var provider = walletManager.currentAdapter?.adapter?.provider;
+        if (!provider) throw new Error('No provider available');
+
+        var ethCall = function (data) {
+          return provider.request({
+            method: 'eth_call',
+            params: [{ to: contractAddr, data: data }, 'latest']
+          });
+        };
+
+        var results = await Promise.all([
+          ethCall(calldata1),
+          ethCall(calldata2),
+          ethCall(calldata3),
+          ethCall(calldata4),
+          ethCall(calldata5),
+        ]);
+
+        var revealed = iface.decodeFunctionResult('revealed', results[0])[0];
+        var owner = iface.decodeFunctionResult('owner', results[1])[0];
+        var hiddenURI = iface.decodeFunctionResult('hiddenURI', results[2])[0];
+        var baseURI = iface.decodeFunctionResult('baseURI', results[3])[0];
+        var maxSupply = iface.decodeFunctionResult('maxSupply', results[4])[0];
+
+        // Populate status card
+        document.getElementById('rv-revealed').textContent = revealed ? '✅ Yes' : '🔒 No';
+        document.getElementById('rv-owner').textContent = owner;
+        document.getElementById('rv-hiddenURI').textContent = hiddenURI || '(empty)';
+        document.getElementById('rv-baseURI').textContent = baseURI || '(empty)';
+        document.getElementById('rv-maxSupply').textContent = maxSupply.toString();
+
+        // Show status card
+        document.getElementById('reveal-status-card').style.display = 'block';
+
+        // Show reveal form card
+        document.getElementById('reveal-form-card').style.display = 'block';
+
+        // Check if already revealed
+        if (revealed) {
+          document.getElementById('reveal-already-revealed').style.display = 'block';
+          document.getElementById('reveal-not-owner').style.display = 'none';
+          document.getElementById('reveal-form-body').style.display = 'none';
+        } else {
+          document.getElementById('reveal-already-revealed').style.display = 'none';
+          // Check if user is owner
+          if (owner.toLowerCase() !== walletManager.address.toLowerCase()) {
+            document.getElementById('reveal-not-owner').style.display = 'block';
+            document.getElementById('reveal-form-body').style.display = 'none';
+          } else {
+            document.getElementById('reveal-not-owner').style.display = 'none';
+            document.getElementById('reveal-form-body').style.display = 'block';
+          }
+        }
+
+      } catch (err) {
+        console.error('[Reveal] Read error:', err);
+        showRevealError('Failed to read contract: ' + (err.message || String(err)));
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '📖 Read Status';
+    }
+
+    function getRevealRPCUrl() {
+      var selectedId = document.getElementById('reveal-network').value;
+      var chainId = NETWORK_CHAIN_MAP[selectedId];
+      var rpcMap = {
+        1: 'https://ethereum-rpc.publicnode.com',
+        11155111: 'https://ethereum-sepolia-rpc.publicnode.com',
+        137: 'https://polygon-bor-rpc.publicnode.com',
+        80002: 'https://rpc-amoy.polygon.technology',
+        56: 'https://bsc-rpc.publicnode.com',
+        97: 'https://bsc-testnet-rpc.publicnode.com',
+        42161: 'https://arbitrum-one-rpc.publicnode.com',
+        421614: 'https://arbitrum-sepolia-rpc.publicnode.com',
+        10: 'https://optimism-rpc.publicnode.com',
+        11155420: 'https://sepolia.optimism.io',
+        8453: 'https://mainnet.base.org',
+        84532: 'https://sepolia.base.org',
+        43114: 'https://avalanche-c-chain-rpc.publicnode.com',
+        43113: 'https://avalanche-fuji-c-chain-rpc.publicnode.com',
+        25: 'https://evm.cronos.org',
+        338: 'https://testnet.cronoscan.com',
+      };
+      return rpcMap[chainId] || null;
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // REVEAL — TOKEN URI PREVIEW
+    // ══════════════════════════════════════════════════════════════
+    function previewTokenURI() {
+      var section = document.getElementById('preview-tokenuri-section');
+      section.style.display = section.style.display === 'none' ? 'block' : 'none';
+    }
+
+    async function doPreviewTokenURI() {
+      var contractAddr = document.getElementById('reveal-contract').value.trim();
+      var tokenId = document.getElementById('preview-tokenid').value.trim();
+      var resultDiv = document.getElementById('preview-tokenuri-result');
+
+      if (!contractAddr || !tokenId) {
+        showRevealError('Please enter contract address and token ID');
+        return;
+      }
+
+      var btn = document.getElementById('btn-do-preview');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Looking up...';
+
+      try {
+        var revealABI = window.REVEAL_ABI || [
+          'function tokenURI(uint256 tokenId) view returns (string)',
+        ];
+        var iface = new window.ethers.utils.Interface(revealABI);
+        var calldata = iface.encodeFunctionData('tokenURI', [parseInt(tokenId)]);
+
+        var provider = walletManager.currentAdapter?.adapter?.provider;
+        if (!provider) throw new Error('No provider available');
+
+        var result = await provider.request({
+          method: 'eth_call',
+          params: [{ to: contractAddr, data: calldata }, 'latest']
+        });
+
+        var uri = iface.decodeFunctionResult('tokenURI', result)[0];
+        resultDiv.textContent = 'Token #' + tokenId + ': ' + uri;
+        resultDiv.style.display = 'block';
+      } catch (err) {
+        resultDiv.textContent = 'Error: ' + (err.message || String(err));
+        resultDiv.style.display = 'block';
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = 'Look up';
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // REVEAL — VALIDATE METADATA
+    // ══════════════════════════════════════════════════════════════
+    async function validateRevealMetadata() {
+      var newBaseURI = document.getElementById('reveal-new-base-uri').value.trim();
+      if (!newBaseURI) {
+        showRevealError('Please enter a new base URI');
+        return;
+      }
+
+      var container = document.getElementById('reveal-validate-results');
+      container.innerHTML = '<div style="font-size:12px;color:#b07090;">Validating...</div>';
+
+      // Ensure base URI ends with /
+      if (!newBaseURI.endsWith('/')) newBaseURI += '/';
+
+      var testIds = [1, 2];
+      var results = [];
+
+      for (var i = 0; i < testIds.length; i++) {
+        var url = newBaseURI + testIds[i] + '.json';
+        try {
+          var resp = await fetch(url, { method: 'HEAD' });
+          results.push({
+            url: url,
+            ok: resp.ok,
+            status: resp.status
+          });
+        } catch (err) {
+          results.push({
+            url: url,
+            ok: false,
+            status: err.message || 'Failed'
+          });
+        }
+      }
+
+      container.innerHTML = '';
+      results.forEach(function (r) {
+        var div = document.createElement('div');
+        div.className = 'validate-result ' + (r.ok ? 'validate-ok' : 'validate-fail');
+        div.textContent = (r.ok ? '✅ ' : '❌ ') + r.url + (r.ok ? ' (' + r.status + ')' : ' — ' + r.status);
+        container.appendChild(div);
+      });
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // REVEAL — EXECUTE REVEAL
+    // ══════════════════════════════════════════════════════════════
+    async function doReveal() {
+      var contractAddr = document.getElementById('reveal-contract').value.trim();
+      var newBaseURI = document.getElementById('reveal-new-base-uri').value.trim();
+      if (!contractAddr || !newBaseURI) {
+        showRevealError('Please fill all required fields');
+        return;
+      }
+      if (!newBaseURI.endsWith('/')) newBaseURI += '/';
+
+      // Validate owner match
+      var state = walletManager.getState();
+      if (!state.connected) {
+        showRevealError('Wallet not connected');
+        return;
+      }
+
+      // Re-read owner to confirm
+      var btn = document.getElementById('btn-do-reveal');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Preparing reveal...';
+      document.getElementById('reveal-error-box').style.display = 'none';
+      document.getElementById('reveal-result-card').style.display = 'none';
+
+      try {
+        var revealABI = window.REVEAL_ABI || [
+          'function owner() view returns (address)',
+          'function reveal(string newBaseURI)',
+        ];
+        var iface = new window.ethers.utils.Interface(revealABI);
+
+        // Check owner
+        var ownerCalldata = iface.encodeFunctionData('owner');
+        var provider = walletManager.currentAdapter?.adapter?.provider;
+        if (!provider) throw new Error('No provider available');
+
+        var ownerResult = await provider.request({
+          method: 'eth_call',
+          params: [{ to: contractAddr, data: ownerCalldata }, 'latest']
+        });
+        var owner = iface.decodeFunctionResult('owner', ownerResult)[0];
+
+        if (owner.toLowerCase() !== state.address.toLowerCase()) {
+          showRevealError('You are not the contract owner. Only the owner can reveal.\nYour address: ' + state.address + '\nOwner: ' + owner);
+          btn.disabled = false;
+          btn.innerHTML = '🔓 Confirm Reveal';
+          return;
+        }
+
+        // Encode reveal(newBaseURI) call
+        var calldata = iface.encodeFunctionData('reveal', [newBaseURI]);
+
+        btn.innerHTML = '<span class="spinner"></span>Waiting for wallet approval...';
+
+        // Send transaction via wallet
+        var txHash = await walletManager.sendTransaction({
+          to: contractAddr,
+          data: calldata,
+          value: '0x0',
+        });
+
+        btn.innerHTML = '<span class="spinner"></span>Transaction sent! Waiting for confirmation...';
+
+        // Wait for receipt
+        var attempts = 0;
+        var receipt = null;
+        while (!receipt && attempts < 30) {
+          try {
+            receipt = await provider.request({
+              method: 'eth_getTransactionReceipt',
+              params: [txHash]
+            });
+          } catch (_) {}
+          if (!receipt) await new Promise(function (r) { setTimeout(r, 3000); });
+          attempts++;
+        }
+
+        // Show result
+        var selectedId = document.getElementById('reveal-network').value;
+        var chainId = NETWORK_CHAIN_MAP[selectedId];
+        var explorerBase = EXPLORER_MAP[chainId] || 'https://etherscan.io';
+
+        document.getElementById('reveal-r-tx').innerHTML = '<a href="' + explorerBase + '/tx/' + txHash + '" target="_blank" style="color:#e75480;text-decoration:none;font-weight:600;">' + txHash.slice(0, 20) + '...</a>';
+        document.getElementById('reveal-r-explorer').innerHTML = '<a href="' + explorerBase + '/tx/' + txHash + '" target="_blank" style="color:#e75480;text-decoration:none;font-weight:600;">View TX on Explorer ♡</a>';
+        document.getElementById('reveal-result-card').style.display = 'block';
+
+        // Hide form
+        document.getElementById('reveal-form-card').style.display = 'none';
+
+      } catch (err) {
+        console.error('[Reveal] Error:', err);
+        var msg = err.message || String(err);
+        if (err.code === 4001 || msg.includes('user rejected')) {
+          msg = 'User rejected request. Reveal cancelled.';
+        }
+        showRevealError(msg);
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '🔓 Confirm Reveal';
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // REVEAL — ERROR DISPLAY
+    // ══════════════════════════════════════════════════════════════
+    function showRevealError(msg) {
+      var box = document.getElementById('reveal-error-box');
+      var msgEl = document.getElementById('reveal-error-msg');
+      box.style.display = 'block';
+      msgEl.textContent = msg;
+      document.getElementById('reveal-result-card').style.display = 'none';
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // REVEAL — REFRESH OPENSEA
+    // ══════════════════════════════════════════════════════════════
+    function refreshOpenSea() {
+      var contractAddr = document.getElementById('reveal-contract').value.trim();
+      var selectedId = document.getElementById('reveal-network').value;
+      var chainId = NETWORK_CHAIN_MAP[selectedId];
+
+      var osChainMap = {
+        1: 'https://opensea.io',
+        11155111: 'https://testnets.opensea.io',
+        137: 'https://opensea.io',
+        80002: 'https://testnets.opensea.io',
+        56: 'https://opensea.io',
+        42161: 'https://opensea.io',
+        10: 'https://opensea.io',
+        8453: 'https://opensea.io',
+        84532: 'https://testnets.opensea.io',
+      };
+
+      var base = osChainMap[chainId] || 'https://opensea.io';
+      window.open(base + '/asset/erc721/' + contractAddr + '/1', '_blank');
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // DEPLOY — ERROR DISPLAY
+    // ══════════════════════════════════════════════════════════════
+    function showError(msg) {
+      const errorBox = document.getElementById('error-box');
+      const errorMsg = document.getElementById('error-msg');
+      errorBox.style.display = 'block';
+      errorMsg.textContent = msg;
+      document.getElementById('result').style.display = 'none';
+    }
+  </script>
+
+  <!-- ethers.js for ABI encoding + provider wrapping -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+</body>
+</html>
