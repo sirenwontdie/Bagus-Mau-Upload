@@ -231,6 +231,26 @@
       self.chainId = result.chainId || null;
       self.walletId = walletId;
       self.balance = result.balance || null;
+
+      // Listen for chain changes from MetaMask/provider
+      if (adapter.adapter && adapter.adapter.provider && adapter.adapter.provider.on) {
+        adapter.adapter.provider.on('chainChanged', function (chainIdHex) {
+          var newChainId = parseInt(chainIdHex, 16);
+          self.chainId = newChainId;
+          self.notify();
+        });
+        adapter.adapter.provider.on('accountsChanged', function (accounts) {
+          if (accounts && accounts.length > 0) {
+            self.address = accounts[0];
+          } else {
+            self.connected = false;
+            self.address = null;
+            self.chainId = null;
+          }
+          self.notify();
+        });
+      }
+
       self.notify();
       return self.getState();
     });

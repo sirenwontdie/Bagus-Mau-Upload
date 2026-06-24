@@ -115,13 +115,7 @@
        PASSWORD GATE
        ═══════════════════════════════════════════════════ */
     #gate {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background: transparent;
-      position: relative;
-      z-index: 10;
+      display: none !important;
     }
 
     .gate-scanline { display: none; }
@@ -220,7 +214,7 @@
     /* ═══════════════════════════════════════════════════
        HEADER
        ═══════════════════════════════════════════════════ */
-    #app { display: none; min-height: 100vh; background: transparent; position: relative; z-index: 1; }
+    #app { display: block; min-height: 100vh; background: transparent; position: relative; z-index: 1; }
 
     .header {
       background: rgba(10, 10, 15, 0.7);
@@ -1017,10 +1011,11 @@
     <!-- Tab Bar -->
     <div class="container" style="margin-top:12px;">
       <div class="tab-bar">
-        <button class="tab-btn active" onclick="switchTab('deploy')">Deploy</button>
-        <button class="tab-btn" onclick="switchTab('reveal')">Reveal</button>
-        <button class="tab-btn" onclick="switchTab('verify')">Verify</button>
-        <button class="tab-btn" onclick="switchTab('refresh')">Refresh</button>
+        <button class="tab-btn active" onclick="switchTab('deploy', this)">Deploy</button>
+        <button class="tab-btn" onclick="switchTab('verify', this)">Verify</button>
+        <button class="tab-btn" onclick="switchTab('reveal', this)">Reveal</button>
+        <button class="tab-btn" onclick="switchTab('refresh', this)">Refresh</button>
+        <button class="tab-btn" onclick="switchTab('settings', this)">Settings</button>
       </div>
     </div>
 
@@ -1114,6 +1109,16 @@
           <span class="result-label">Explorer</span>
           <span class="result-value" id="r-explorer"></span>
         </div>
+
+        <!-- Next Steps -->
+        <div style="margin-top:16px;padding:14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:4px;">
+          <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-bottom:10px;font-family:var(--font-head);">Next Steps</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="btn-secondary" onclick="goToVerify()" style="text-align:left;">1. Verify Contract on Block Explorer</button>
+            <button class="btn-secondary" onclick="switchTab('reveal')" style="text-align:left;">2. Reveal Collection (set Base URI)</button>
+            <button class="btn-secondary" onclick="switchTab('refresh')" style="text-align:left;">3. Refresh Metadata on OpenSea</button>
+          </div>
+        </div>
       </div>
 
       <!-- Error -->
@@ -1124,30 +1129,219 @@
 
       <!-- Guide -->
       <div class="guide-card">
-        <h3> Cara Deploy NFT Collection</h3>
+        <h3> Flow Lengkap: Deploy → OpenSea → Reveal</h3>
         <div class="guide-step">
           <div class="step-num">1</div>
-          <div class="step-text"><strong>Connect wallet EVM</strong> (MetaMask, Rabby, WalletConnect) lewat tombol di atas.</div>
+          <div class="step-text"><strong>Connect wallet</strong> — MetaMask/Rabby. Pastikan wallet lo ada di chain yang benar.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">2</div>
-          <div class="step-text"><strong>Pilih chain</strong> yang mau lo deploy. Pastikan wallet lo ada di network yang sama.</div>
+          <div class="step-text"><strong>Pilih chain</strong> — Base recommended (gas ~$0.01). Click <code>Switch</code> kalau wallet beda network.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">3</div>
-          <div class="step-text"><strong>Isi data collection:</strong> nama, simbol, max supply, harga mint, dan batas mint per wallet.</div>
+          <div class="step-text"><strong>Isi form:</strong><br>
+            • <strong>Name</strong> — nama collection (contoh: "Pelipis Bawuk")<br>
+            • <strong>Symbol</strong> — ticker (contoh: "PBW")<br>
+            • <strong>Max Supply</strong> — jumlah NFT<br>
+            • <strong>Mint Price</strong> — 0 = free mint<br>
+            • <strong>Max Per Wallet</strong> — limit per wallet<br>
+            • <strong>Hidden URI</strong> — placeholder JSON (semua token sama)<br>
+            • <strong>Base URI</strong> — URL metadata real (ganti nanti pas reveal)
+          </div>
         </div>
         <div class="guide-step">
           <div class="step-num">4</div>
-          <div class="step-text"><strong>Isi metadata:</strong> <code>Hidden URI</code> (placeholder sebelum reveal) dan <code>Base URI</code> (URL real metadata).</div>
+          <div class="step-text"><strong>Deploy</strong> — click <code>Deploy Contract</code>, review di modal, confirm di MetaMask. Gas: ~$0.01-0.05.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">5</div>
-          <div class="step-text">Klik <code>Deploy Contract</code> dan review transaksi di modal preview. Confirm di wallet lo.</div>
+          <div class="step-text"><strong>Verify contract</strong> — buka tab <code>Verify</code>, paste contract address, buka BaseScan, verify. <strong>Wajib</strong> biar OpenSea detect.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">6</div>
-          <div class="step-text">Simpan alamat kontrak. Pakai tab <code>Reveal</code> untuk reveal collection di OpenSea.</div>
+          <div class="step-text"><strong>OpenSea auto-detect</strong> — collection muncul otomatis di OpenSea. Buka collection → Settings → edit info (name, image, banner, royalties, links).</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">7</div>
+          <div class="step-text"><strong>User mint</strong> — collector connect wallet → mint dari OpenSea atau langsung dari contract.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">8</div>
+          <div class="step-text"><strong>Upload metadata</strong> ke IPFS/Pinata. Pastikan tiap token punya JSON dengan <code>attributes</code> array (traits).</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">9</div>
+          <div class="step-text"><strong>Reveal</strong> — buka tab <code>Reveal</code>, paste contract address, set Base URI baru, click <code>Confirm Reveal</code>.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">10</div>
+          <div class="step-text"><strong>Refresh OpenSea</strong> — buka tab <code>Refresh</code>, trigger metadata refresh. Traits keliatan di collection page.</div>
+        </div>
+      </div>
+
+      <div class="deco-line">
+        <div class="deco-line-bar"></div><div class="deco-dot"></div><div class="deco-line-bar"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         VERIFY PANEL
+         ═══════════════════════════════════════════════════ -->
+    <div id="verify-panel" class="container tab-panel">
+
+      <!-- API Key -->
+      <div class="card">
+        <h2><span class="icon">🔑</span> API Key</h2>
+        <div class="form-group">
+          <label>Block Explorer API Key *</label>
+          <input type="text" id="verify-api-key" placeholder="Your API Key">
+          <div style="margin-top:6px;font-size:11px;color:var(--text-dim);">
+            Belum punya? <a href="https://basescan.org/myapikey" target="_blank" style="color:var(--primary);text-decoration:underline;">Get free API key</a> → Login → Generate new key
+          </div>
+        </div>
+        <div style="padding:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:4px;margin-top:8px;">
+          <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:6px;">Cara dapet API Key:</div>
+          <div style="font-size:12px;color:var(--text);line-height:1.6;">
+            1. Buka <a href="https://basescan.org/myapikey" target="_blank" style="color:var(--primary);">basescan.org/myapikey</a><br>
+            2. Login / daftar akun BaseScan<br>
+            3. Klik <strong>"Add"</strong> untuk generate key baru<br>
+            4. Copy key → paste di kolom atas<br>
+            5. Key tersimpan otomatis di browser (localStorage)
+          </div>
+        </div>
+      </div>
+
+      <!-- Contract Info -->
+      <div class="card">
+        <h2><span class="icon">印</span> Verifikasi Kontrak</h2>
+        <div class="form-group">
+          <label>Alamat Kontrak *</label>
+          <input type="text" id="verify-contract" placeholder="0x...">
+        </div>
+        <div class="form-group">
+          <label>Chain *</label>
+          <select id="verify-network"></select>
+        </div>
+      </div>
+
+      <!-- Source Info -->
+      <div class="card">
+        <h2><span class="icon">紙</span> Source Code</h2>
+        <!-- Source Code Input Mode -->
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button class="btn-secondary" onclick="loadSourceCode()" style="flex:1;" id="btn-load-default">📄 Load NFTCollection</button>
+          <label class="btn-secondary" for="upload-sol" style="flex:1;text-align:center;cursor:pointer;">📁 Upload .sol File</label>
+          <input type="file" id="upload-sol" accept=".sol" onchange="handleSolUpload(event)" style="display:none;">
+        </div>
+        <div id="source-code-status" style="display:none;margin-bottom:10px;"></div>
+        
+        <!-- Source Code Textarea (always visible for manual paste) -->
+        <div class="form-group">
+          <label>Source Code (paste atau upload)</label>
+          <textarea id="source-code-content" placeholder="Paste flattened source code di sini, atau click tombol di atas untuk load/upload..." style="width:100%;height:200px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:2px;color:#0f0;font-family:var(--font-mono);font-size:11px;padding:10px;resize:vertical;"></textarea>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+            <span id="source-code-info" style="font-size:11px;color:var(--text-dim);">0 lines</span>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-secondary" onclick="copySourceCode()" style="width:auto;padding:6px 12px;font-size:10px;">📋 Copy</button>
+              <button class="btn-secondary" onclick="clearSourceCode()" style="width:auto;padding:6px 12px;font-size:10px;">🗑 Clear</button>
+            </div>
+          </div>
+        </div>
+        
+        <div style="padding:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:4px;margin-bottom:12px;">
+          <div style="font-size:10px;color:var(--text-dim);line-height:1.5;">
+            <strong>Cara pakai:</strong><br>
+            1. <strong>Load NFTCollection</strong> — load source code bawaan<br>
+            2. <strong>Upload .sol</strong> — upload file flattened sendiri<br>
+            3. <strong>Paste manual</strong> — langsung paste ke textarea<br>
+            4. Pastikan sudah di-flatten (<code>npx hardhat flatten</code>)
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:12px;">
+          <label>Nama Kontrak (Solidity)</label>
+          <input type="text" id="verify-contract-name" placeholder="NFTCollection" value="NFTCollection">
+        </div>
+        <div class="form-group">
+          <label>Solc Version</label>
+          <select id="verify-solc">
+            <option value="0.8.27">0.8.27</option>
+            <option value="0.8.20">0.8.20</option>
+            <option value="0.8.19">0.8.19</option>
+            <option value="0.8.17">0.8.17</option>
+            <option value="0.8.9">0.8.9</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Optimization</label>
+          <select id="verify-optimization">
+            <option value="200">Yes (200 runs)</option>
+            <option value="0">No</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-primary" onclick="autoVerify()" style="flex:1;">⚡ Auto Verify</button>
+          <button class="btn-secondary" onclick="openEtherscanVerify()" style="flex:1;">Manual Verify</button>
+        </div>
+        <div id="verify-status" style="display:none;margin-top:10px;padding:10px;border-radius:4px;font-size:12px;"></div>
+      </div>
+
+      <!-- Guide -->
+      <div class="guide-card">
+        <h3> Cara Verifikasi Manual (BaseScan)</h3>
+        <div class="guide-step">
+          <div class="step-num">1</div>
+          <div class="step-text">Buka <code>https://basescan.org/verifyContract?a=ALAMAT_KONTRAK</code></div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">2</div>
+          <div class="step-text"><strong>Compiler Type:</strong> pilih <code>Solidity (Single file)</code></div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">3</div>
+          <div class="step-text"><strong>Compiler Version:</strong> pilih <code>v0.8.27+commit.27d51765</code></div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">4</div>
+          <div class="step-text"><strong>Open Source License:</strong> pilih <code>MIT</code></div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">5</div>
+          <div class="step-text"><strong>Paste source code</strong> dari file <code>NFTCollection.flat.sol</code> (flattened version yang udah include semua OpenZeppelin imports).</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">6</div>
+          <div class="step-text">Centang <strong>"I agree to the terms of service"</strong></div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">7</div>
+          <div class="step-text">Klik <code>"Verify & Publish"</code>. Tunggu 1-2 menit. Setelah berhasil, contract lo akan punya badge verifikasi (centang biru).</div>
+        </div>
+      </div>
+        <div class="guide-step">
+          <div class="step-num">5</div>
+          <div class="step-text"><strong>Paste source code</strong> dari file <code>contracts/NFTCollection.sol</code>. Kalau pakai flatten, paste hasil flatten-nya.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">6</div>
+          <div class="step-text">Constructor arguments akan di-generate otomatis dari bytecode. Biasanya Etherscan bisa auto-detect.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">7</div>
+          <div class="step-text">Klik <code>Verify & Publish</code>. Proses butuh 1-2 menit. Setelah berhasil, kontrak lo akan punya badge verifikasi (centang biru) di Etherscan.</div>
+        </div>
+      </div>
+
+      <div class="guide-card">
+        <h3>Kenapa Harus Verifikasi?</h3>
+        <div class="guide-step">
+          <div class="step-text"><strong>Trust & Transparansi</strong> — Kontrak yang terverifikasi bisa di-source code-nya oleh siapapun. User/collector bisa audit kode sebelum beli. Tanpa verifikasi, orang-orang ragu karena ga bisa cek apakah ada backdoor atau scam function.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-text"><strong>Interaksi lebih mudah</strong> — Etherscan bisa auto-generate interface untuk call function (read/write). User bisa langsung mint, reveal, atau pause dari Etherscan tanpa perlu front-end.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-text"><strong>OpenSea / Marketplace</strong> — Banyak marketplace verifikasi kontrak sebelum list. Kontrak yang ga verified seringkali ga muncul dengan benar.</div>
         </div>
       </div>
 
@@ -1273,22 +1467,39 @@
 
       <!-- Guide -->
       <div class="guide-card">
-        <h3> Flow Reveal Lengkap</h3>
+        <h3> Kenapa OpenSea Drop Ga Bisa Reveal?</h3>
+        <div class="guide-step">
+          <div class="step-text"><strong>OpenSea Studio drops pakai proxy contract</strong> (EIP-1167 minimal proxy, cuma 45 bytes). Contract ini <strong>ga punya fungsi <code>setBaseURI()</code></strong> — jadi lo ga bisa ganti metadata on-chain.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-text"><strong>DeepFins dulu juga sama</strong> — deploy via OpenSea, upload metadata eror, ga kereveal. Solusinya: deploy <strong>custom ERC721 contract</strong> baru (bukan proxy) yang punya <code>setBaseURI()</code>.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-text"><strong>Cara kerja reveal:</strong> Contract punya <code>hiddenURI</code> (placeholder) dan <code>baseURI</code> (real metadata). Sebelum reveal → semua token pointing ke hidden. Setelah reveal → pointing ke real metadata.</div>
+        </div>
+      </div>
+
+      <div class="guide-card">
+        <h3> Flow Reveal (Custom Contract)</h3>
         <div class="guide-step">
           <div class="step-num">1</div>
-          <div class="step-text"><strong>Deploy</strong> kontrak ERC721 lo di tab <code>Deploy</code>. Set <code>Hidden URI</code> (placeholder metadata) dan <code>Base URI</code> (real metadata).</div>
+          <div class="step-text"><strong>Deploy custom ERC721</strong> — buka tab <code>Deploy</code>, compile + deploy <code>NFTCollection.sol</code>. Set <code>Hidden URI</code> (placeholder) dan <code>Base URI</code> (real metadata URL).</div>
         </div>
         <div class="guide-step">
           <div class="step-num">2</div>
-          <div class="step-text"><strong>Mint</strong> — user mint NFT. Yang mereka lihat cuma placeholder art (hidden metadata).</div>
+          <div class="step-text"><strong>Mint NFT</strong> — user mint. Yang mereka lihat: placeholder art (hidden metadata).</div>
         </div>
         <div class="guide-step">
           <div class="step-num">3</div>
-          <div class="step-text"><strong>Reveal</strong> — buka tab ini, call <code>reveal()</code> untuk switch dari hidden ke real metadata. Cuma deployer yang bisa.</div>
+          <div class="step-text"><strong>Upload metadata</strong> ke IPFS (Pinata) atau server lo. Pastikan URL accessible publicly.</div>
         </div>
         <div class="guide-step">
           <div class="step-num">4</div>
-          <div class="step-text"><strong>Refresh</strong> — buka tab <code>Refresh</code> untuk trigger refresh metadata di OpenSea supaya collector lihat real artwork.</div>
+          <div class="step-text"><strong>Reveal</strong> — buka tab ini, masukkan contract address, klik <code>Read Contract Status</code>. Setelah itu, masukkan Base URI baru (URL metadata real) lalu klik <code>Confirm Reveal</code>.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">5</div>
+          <div class="step-text"><strong>Refresh di OpenSea</strong> — buka tab <code>Refresh</code> untuk trigger metadata refresh supaya collector lihat real artwork.</div>
         </div>
       </div>
 
@@ -1308,119 +1519,23 @@
         </div>
         <div class="guide-step">
           <div class="step-num">4</div>
+          <div class="step-text">Kalau contract pakai proxy (EIP-1167) → <strong>ga bisa reveal on-chain</strong>. Lo harus deploy custom contract baru di tab <code>Deploy</code>.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">5</div>
           <div class="step-text">Masukkan <code>Base URI</code> baru — URL IPFS atau HTTPS yang menuju file metadata real (contoh: <code>ipfs://QmXXX/</code>).</div>
         </div>
         <div class="guide-step">
-          <div class="step-num">5</div>
+          <div class="step-num">6</div>
           <div class="step-text">Opsional: validasi URL metadata dengan klik <code>Validate Metadata URLs</code> untuk cek apakah file metadata bisa diakses.</div>
         </div>
         <div class="guide-step">
-          <div class="step-num">6</div>
+          <div class="step-num">7</div>
           <div class="step-text">Klik <code>Confirm Reveal</code> dan approve transaksi di wallet. Ini set baseURI real dan tandai collection sebagai revealed.</div>
         </div>
         <div class="guide-step">
-          <div class="step-num">7</div>
+          <div class="step-num">8</div>
           <div class="step-text">Setelah reveal, buka tab <code>Refresh</code> untuk refresh metadata di OpenSea supaya collector lihat real artwork.</div>
-        </div>
-      </div>
-
-      <div class="deco-line">
-        <div class="deco-line-bar"></div><div class="deco-dot"></div><div class="deco-line-bar"></div>
-      </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════
-         VERIFY PANEL
-         ═══════════════════════════════════════════════════ -->
-    <div id="verify-panel" class="container tab-panel">
-
-      <!-- Contract Info -->
-      <div class="card">
-        <h2><span class="icon">印</span> Verifikasi Kontrak</h2>
-        <div class="form-group">
-          <label>Alamat Kontrak *</label>
-          <input type="text" id="verify-contract" placeholder="0x...">
-        </div>
-        <div class="form-group">
-          <label>Chain *</label>
-          <select id="verify-network"></select>
-        </div>
-      </div>
-
-      <!-- Source Info -->
-      <div class="card">
-        <h2><span class="icon">紙</span> Source Code</h2>
-        <div class="form-group">
-          <label>Nama Kontrak (Solidity)</label>
-          <input type="text" id="verify-contract-name" placeholder="NFTCollection" value="NFTCollection">
-        </div>
-        <div class="form-group">
-          <label>Solc Version</label>
-          <select id="verify-solc">
-            <option value="0.8.20">0.8.20</option>
-            <option value="0.8.19">0.8.19</option>
-            <option value="0.8.17">0.8.17</option>
-            <option value="0.8.9">0.8.9</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Optimization</label>
-          <select id="verify-optimization">
-            <option value="200">Yes (200 runs)</option>
-            <option value="0">No</option>
-          </select>
-        </div>
-        <button class="btn-primary" onclick="openEtherscanVerify()">Buka Etherscan / Blockscout</button>
-      </div>
-
-      <!-- Guide -->
-      <div class="guide-card">
-        <h3> Cara Verifikasi Smart Contract</h3>
-        <div class="guide-step">
-          <div class="step-num">1</div>
-          <div class="step-text"><strong>Masukkan alamat kontrak</strong> yang sudah lo deploy ke kolom di atas.</div>
-        </div>
-        <div class="guide-step">
-          <div class="step-num">2</div>
-          <div class="step-text"><strong>Pilih chain</strong> tempat kontrak lo di-deploy.</div>
-        </div>
-        <div class="guide-step">
-          <div class="step-num">3</div>
-          <div class="step-text">Klik <code>Buka Etherscan / Blockscout</code>. Lo akan dibawa ke halaman verifikasi di block explorer.</div>
-        </div>
-        <div class="guide-step">
-          <div class="step-num">4</div>
-          <div class="step-text"><strong>Isi form verifikasi:</strong><br>
-            - Contract Name: <code>NFTCollection</code><br>
-            - Compiler: <code>0.8.20</code><br>
-            - Optimization: <code>Yes</code> (200 runs)<br>
-            - License: MIT
-          </div>
-        </div>
-        <div class="guide-step">
-          <div class="step-num">5</div>
-          <div class="step-text"><strong>Paste source code</strong> dari file <code>contracts/NFTCollection.sol</code>. Kalau pakai flatten, paste hasil flatten-nya.</div>
-        </div>
-        <div class="guide-step">
-          <div class="step-num">6</div>
-          <div class="step-text">Constructor arguments akan di-generate otomatis dari bytecode. Biasanya Etherscan bisa auto-detect.</div>
-        </div>
-        <div class="guide-step">
-          <div class="step-num">7</div>
-          <div class="step-text">Klik <code>Verify & Publish</code>. Proses butuh 1-2 menit. Setelah berhasil, kontrak lo akan punya badge verifikasi (centang biru) di Etherscan.</div>
-        </div>
-      </div>
-
-      <div class="guide-card">
-        <h3>Kenapa Harus Verifikasi?</h3>
-        <div class="guide-step">
-          <div class="step-text"><strong>Trust & Transparansi</strong> — Kontrak yang terverifikasi bisa di-source code-nya oleh siapapun. User/collector bisa audit kode sebelum beli. Tanpa verifikasi, orang-orang ragu karena ga bisa cek apakah ada backdoor atau scam function.</div>
-        </div>
-        <div class="guide-step">
-          <div class="step-text"><strong>Interaksi lebih mudah</strong> — Etherscan bisa auto-generate interface untuk call function (read/write). User bisa langsung mint, reveal, atau pause dari Etherscan tanpa perlu front-end.</div>
-        </div>
-        <div class="guide-step">
-          <div class="step-text"><strong>OpenSea / Marketplace</strong> — Banyak marketplace verifikasi kontrak sebelum list. Kontrak yang ga verified seringkali ga muncul dengan benar.</div>
         </div>
       </div>
 
@@ -1502,6 +1617,109 @@
           <!-- Filled dynamically after parse -->
         </div>
       </div>
+
+      <div class="deco-line">
+        <div class="deco-line-bar"></div><div class="deco-dot"></div><div class="deco-line-bar"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         COLLECTION SETTINGS PANEL
+         ═══════════════════════════════════════════════════ -->
+    <div id="settings-panel" class="container tab-panel">
+
+      <!-- Basic Info -->
+      <div class="card">
+        <h2><span class="icon">📝</span> Collection Info</h2>
+        <div class="form-group">
+          <label>Collection Name *</label>
+          <input type="text" id="settings-name" placeholder="My NFT Collection">
+        </div>
+        <div class="form-group">
+          <label>Symbol *</label>
+          <input type="text" id="settings-symbol" placeholder="MNC">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="settings-description" rows="3" placeholder="Describe your collection..." style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:2px;color:#fff;font-size:13px;padding:10px;resize:vertical;font-family:var(--font-mono);"></textarea>
+        </div>
+      </div>
+
+      <!-- Media -->
+      <div class="card">
+        <h2><span class="icon">🖼</span> Media</h2>
+        <div class="form-group">
+          <label>Logo Image URL</label>
+          <input type="text" id="settings-logo" placeholder="https://example.com/logo.png">
+        </div>
+        <div class="form-group">
+          <label>Banner Image URL</label>
+          <input type="text" id="settings-banner" placeholder="https://example.com/banner.png">
+        </div>
+      </div>
+
+      <!-- Category & Links -->
+      <div class="card">
+        <h2><span class="icon">🔗</span> Category & Links</h2>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="settings-category">
+            <option value="">Select category...</option>
+            <option value="art">Art</option>
+            <option value="photography">Photography</option>
+            <option value="music">Music</option>
+            <option value="domain-names">Domain Names</option>
+            <option value="virtual-worlds">Virtual Worlds</option>
+            <option value="sports">Sports</option>
+            <option value="collectibles">Collectibles</option>
+            <option value="utility">Utility</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Website</label>
+          <input type="text" id="settings-website" placeholder="https://example.com">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Discord</label>
+            <input type="text" id="settings-discord" placeholder="https://discord.gg/...">
+          </div>
+          <div class="form-group">
+            <label>Twitter</label>
+            <input type="text" id="settings-twitter" placeholder="https://twitter.com/...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Royalties -->
+      <div class="card">
+        <h2><span class="icon">💰</span> Royalties</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Royalty %</label>
+            <input type="number" id="settings-royalty" value="5" min="0" max="10" step="0.5">
+          </div>
+          <div class="form-group">
+            <label>Payout Address</label>
+            <input type="text" id="settings-payout" placeholder="0x...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Contract Address -->
+      <div class="card">
+        <h2><span class="icon">📜</span> Contract</h2>
+        <div class="form-group">
+          <label>Contract Address</label>
+          <input type="text" id="settings-contract" placeholder="0x...">
+        </div>
+      </div>
+
+      <!-- Save -->
+      <button class="btn-primary" onclick="saveCollectionSettings()">💾 Save Settings</button>
+      <button class="btn-secondary" onclick="exportCollectionSettings()" style="margin-top:8px;">📤 Export JSON</button>
+
+      <div id="settings-status" style="display:none;margin-top:10px;padding:10px;border-radius:4px;font-size:12px;"></div>
 
       <div class="deco-line">
         <div class="deco-line-bar"></div><div class="deco-dot"></div><div class="deco-line-bar"></div>
@@ -1627,10 +1845,11 @@
         .then(function(data) { contractData = data; })
         .catch(function(e) { console.warn('Failed to load contract.json:', e); });
 
-      // Check if already authenticated
-      if (localStorage.getItem('nft_auth') === 'true') {
-        doAutoLogin();
-      }
+      // ── Auth removed: always show app ──
+      loadNetworks();
+      loadCollectionSettings();
+      walletUI.init('wallet-status');
+      walletUIReveal.init('reveal-wallet-status');
     });
 
     async function doAutoLogin() {
@@ -1658,9 +1877,9 @@
     // ══════════════════════════════════════════════════════════════
     // TAB SYSTEM
     // ══════════════════════════════════════════════════════════════
-    function switchTab(name) {
-      document.querySelectorAll('.tab-btn').forEach(function(btn) { btn.classList.remove('active'); });
-      event.target.classList.add('active');
+    function switchTab(name, btn) {
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      if (btn) btn.classList.add('active');
 
       document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
       var panel = document.getElementById(name + '-panel');
@@ -1707,6 +1926,7 @@
     // ══════════════════════════════════════════════════════════════
     // NETWORKS (Deploy tab)
     // ══════════════════════════════════════════════════════════════
+
     async function loadNetworks() {
       try {
         var res = await fetch('/api/networks');
@@ -2128,6 +2348,300 @@
     }
 
     // ══════════════════════════════════════════════════════════════
+    // VERIFY — Save/load API key from localStorage
+    (function() {
+      var savedKey = localStorage.getItem('basescan_api_key');
+      if (savedKey) {
+        var keyInput = document.getElementById('verify-api-key');
+        if (keyInput) keyInput.value = savedKey;
+      }
+      document.addEventListener('change', function(e) {
+        if (e.target && e.target.id === 'verify-api-key') {
+          localStorage.setItem('basescan_api_key', e.target.value.trim());
+        }
+      });
+      document.addEventListener('input', function(e) {
+        if (e.target && e.target.id === 'verify-api-key') {
+          localStorage.setItem('basescan_api_key', e.target.value.trim());
+        }
+      });
+    })();
+
+    // LOAD SOURCE CODE — fetch flattened .sol file
+    async function loadSourceCode() {
+      var statusEl = document.getElementById('source-code-status');
+      var contentEl = document.getElementById('source-code-content');
+      var infoEl = document.getElementById('source-code-info');
+      
+      statusEl.style.display = 'block';
+      statusEl.style.color = 'var(--text-dim)';
+      statusEl.textContent = '⏳ Loading NFTCollection.flat.sol...';
+      
+      try {
+        var res = await fetch('/contracts/NFTCollection.flat.sol');
+        if (!res.ok) throw new Error('File not found');
+        var code = await res.text();
+        contentEl.value = code;
+        var lines = code.split('\n').length;
+        infoEl.textContent = lines + ' lines — NFTCollection.flat.sol';
+        statusEl.style.color = '#00ff64';
+        statusEl.textContent = '✓ Loaded! Source code siap di-submit.';
+        setTimeout(function() { statusEl.style.display = 'none'; }, 3000);
+      } catch(err) {
+        statusEl.style.color = '#ff4444';
+        statusEl.textContent = '✖ Error: ' + err.message;
+      }
+    }
+    
+    // HANDLE SOL FILE UPLOAD
+    function handleSolUpload(event) {
+      var file = event.target.files[0];
+      if (!file) return;
+      
+      var statusEl = document.getElementById('source-code-status');
+      var contentEl = document.getElementById('source-code-content');
+      var infoEl = document.getElementById('source-code-info');
+      
+      statusEl.style.display = 'block';
+      statusEl.style.color = 'var(--text-dim)';
+      statusEl.textContent = '⏳ Reading ' + file.name + '...';
+      
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var code = e.target.result;
+        contentEl.value = code;
+        var lines = code.split('\n').length;
+        infoEl.textContent = lines + ' lines — ' + file.name;
+        statusEl.style.color = '#00ff64';
+        statusEl.textContent = '✓ Loaded! (' + lines + ' lines)';
+        setTimeout(function() { statusEl.style.display = 'none'; }, 3000);
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+    
+    // COPY SOURCE CODE to clipboard
+    function copySourceCode() {
+      var contentEl = document.getElementById('source-code-content');
+      contentEl.select();
+      document.execCommand('copy');
+      var statusEl = document.getElementById('source-code-status');
+      statusEl.style.display = 'block';
+      statusEl.style.color = '#00ff64';
+      statusEl.textContent = '✓ Copied to clipboard!';
+      setTimeout(function() { statusEl.style.display = 'none'; }, 2000);
+    }
+    
+    // CLEAR SOURCE CODE
+    function clearSourceCode() {
+      var contentEl = document.getElementById('source-code-content');
+      var infoEl = document.getElementById('source-code-info');
+      contentEl.value = '';
+      infoEl.textContent = '0 lines';
+    }
+
+    // COLLECTION SETTINGS — Save/Load/Export
+    function saveCollectionSettings() {
+      var settings = {
+        name: document.getElementById('settings-name').value.trim(),
+        symbol: document.getElementById('settings-symbol').value.trim(),
+        description: document.getElementById('settings-description').value.trim(),
+        logo: document.getElementById('settings-logo').value.trim(),
+        banner: document.getElementById('settings-banner').value.trim(),
+        category: document.getElementById('settings-category').value,
+        website: document.getElementById('settings-website').value.trim(),
+        discord: document.getElementById('settings-discord').value.trim(),
+        twitter: document.getElementById('settings-twitter').value.trim(),
+        royalty: document.getElementById('settings-royalty').value,
+        payout: document.getElementById('settings-payout').value.trim(),
+        contract: document.getElementById('settings-contract').value.trim(),
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem('nft_collection_settings', JSON.stringify(settings));
+      var statusEl = document.getElementById('settings-status');
+      statusEl.style.display = 'block';
+      statusEl.style.background = 'rgba(0,255,100,0.05)';
+      statusEl.style.border = '1px solid rgba(0,255,100,0.2)';
+      statusEl.style.color = '#00ff64';
+      statusEl.textContent = '✓ Settings saved! (' + new Date().toLocaleTimeString() + ')';
+      setTimeout(function() { statusEl.style.display = 'none'; }, 3000);
+    }
+
+    function loadCollectionSettings() {
+      var saved = localStorage.getItem('nft_collection_settings');
+      if (!saved) return;
+      try {
+        var settings = JSON.parse(saved);
+        if (settings.name) document.getElementById('settings-name').value = settings.name;
+        if (settings.symbol) document.getElementById('settings-symbol').value = settings.symbol;
+        if (settings.description) document.getElementById('settings-description').value = settings.description;
+        if (settings.logo) document.getElementById('settings-logo').value = settings.logo;
+        if (settings.banner) document.getElementById('settings-banner').value = settings.banner;
+        if (settings.category) document.getElementById('settings-category').value = settings.category;
+        if (settings.website) document.getElementById('settings-website').value = settings.website;
+        if (settings.discord) document.getElementById('settings-discord').value = settings.discord;
+        if (settings.twitter) document.getElementById('settings-twitter').value = settings.twitter;
+        if (settings.royalty) document.getElementById('settings-royalty').value = settings.royalty;
+        if (settings.payout) document.getElementById('settings-payout').value = settings.payout;
+        if (settings.contract) document.getElementById('settings-contract').value = settings.contract;
+      } catch(e) {}
+    }
+
+    function exportCollectionSettings() {
+      var saved = localStorage.getItem('nft_collection_settings');
+      if (!saved) { alert('No settings to export'); return; }
+      var blob = new Blob([saved], {type: 'application/json'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'collection-settings.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // AUTO VERIFY — via BaseScan API
+    async function autoVerify() {
+      var statusEl = document.getElementById('verify-status');
+      var apiKey = document.getElementById('verify-api-key').value.trim();
+      var contractAddr = document.getElementById('verify-contract').value.trim();
+      var networkId = document.getElementById('verify-network').value;
+      var contractName = document.getElementById('verify-contract-name').value.trim() || 'NFTCollection';
+      var solcVersion = document.getElementById('verify-solc').value;
+      var optimization = document.getElementById('verify-optimization').value;
+
+      if (!apiKey) {
+        statusEl.style.display = 'block';
+        statusEl.style.background = 'rgba(255,183,77,0.1)';
+        statusEl.style.border = '1px solid rgba(255,183,77,0.3)';
+        statusEl.style.color = '#ffb74d';
+        statusEl.textContent = '⚠ Masukkan API Key dulu. Get free key di basescan.org/myapikey';
+        return;
+      }
+
+      if (!contractAddr || !contractAddr.startsWith('0x')) {
+        statusEl.style.display = 'block';
+        statusEl.style.background = 'rgba(255,68,68,0.1)';
+        statusEl.style.border = '1px solid rgba(255,68,68,0.3)';
+        statusEl.style.color = '#ff4444';
+        statusEl.textContent = '⚠ Masukkan alamat kontrak yang valid';
+        return;
+      }
+
+      // Show loading
+      statusEl.style.display = 'block';
+      statusEl.style.background = 'rgba(255,255,255,0.05)';
+      statusEl.style.border = '1px solid rgba(255,255,255,0.1)';
+      statusEl.style.color = 'var(--text)';
+      statusEl.textContent = '⏳ Verifying...';
+
+      // Build explorer API URL
+      var apiMap = {
+        mainnet: 'https://api.etherscan.io/api',
+        sepolia: 'https://api-sepolia.etherscan.io/api',
+        polygon: 'https://api.polygonscan.com/api',
+        amoy: 'https://api-amoy.polygonscan.com/api',
+        bsc: 'https://api.bscscan.com/api',
+        bscTestnet: 'https://api-testnet.bscscan.com/api',
+        arbitrum: 'https://api.arbiscan.io/api',
+        arbitrumSepolia: 'https://api-sepolia.arbiscan.io/api',
+        optimism: 'https://api-optimistic.etherscan.io/api',
+        optimismSepolia: 'https://api-sepolia-optimistic.etherscan.io/api',
+        base: 'https://api.basescan.org/api',
+        basesepolia: 'https://api-sepolia.basescan.org/api',
+        avalanche: 'https://api.snowtrace.io/api',
+        fuji: 'https://api-testnet.snowtrace.io/api',
+        cronos: 'https://api.cronoscan.com/api',
+        cronosTestnet: 'https://api-testnet.cronoscan.com/api',
+      };
+
+      var apiUrl = apiMap[networkId];
+      if (!apiUrl) {
+        statusEl.style.background = 'rgba(255,68,68,0.1)';
+        statusEl.style.border = '1px solid rgba(255,68,68,0.3)';
+        statusEl.style.color = '#ff4444';
+        statusEl.textContent = '⚠ Chain ini belum support auto-verify';
+        return;
+      }
+
+      try {
+        // Fetch source code from contract.json
+        var contractRes = await fetch('/contract.json');
+        var contractData = await contractRes.json();
+
+        // Get the ABI to extract constructor args
+        var constructorInputs = contractData.abi.filter(function(item) {
+          return item.type === 'constructor';
+        })[0];
+
+        // Read source code
+        var sourceRes = await fetch('/contracts/NFTCollection.sol');
+        var sourceCode = await sourceRes.text();
+
+        // Build constructor arguments (encode)
+        var constructorArgs = '';
+        if (constructorInputs && window.ethers) {
+          var coder = new window.ethers.utils.AbiCoder();
+          var abi = constructorInputs.inputs.map(function(i) { return i.internalType || i.type; });
+          // We'll pass empty constructor args for now - user can set via contract
+          constructorArgs = '';
+        }
+
+        // Build POST body for Etherscan-compatible API
+        var params = new URLSearchParams();
+        params.append('apikey', apiKey);
+        params.append('module', 'contract');
+        params.append('action', 'verifysourcecode');
+        params.append('contractaddress', contractAddr);
+        params.append('sourceCode', sourceCode);
+        params.append('contractname', contractName);
+        params.append('compilerversion', 'v' + solcVersion + '+commit.27d51765');
+        params.append('optimizationUsed', optimization > 0 ? '1' : '0');
+        params.append('runs', optimization);
+        params.append('constructorArguements', constructorArgs);
+        params.append('evmversion', 'cancun');
+        params.append('licenseType', '3');
+
+        var response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: params.toString()
+        });
+
+        var result = await response.json();
+
+        if (result.status === '1' && result.result === 'Pending in queue') {
+          statusEl.style.background = 'rgba(0,255,100,0.05)';
+          statusEl.style.border = '1px solid rgba(0,255,100,0.2)';
+          statusEl.style.color = '#00ff64';
+          statusEl.innerHTML = '✓ Verification submitted! Check status: <a href="' + apiUrl.replace('/api', '') + '/address/' + contractAddr + '#code" target="_blank" style="color:#00ff64;text-decoration:underline;">View on Explorer</a>';
+        } else if (result.result === 'Contract source code already verified') {
+          statusEl.style.background = 'rgba(0,255,100,0.05)';
+          statusEl.style.border = '1px solid rgba(0,255,100,0.2)';
+          statusEl.style.color = '#00ff64';
+          statusEl.textContent = '✓ Contract sudah terverifikasi!';
+        } else {
+          statusEl.style.background = 'rgba(255,68,68,0.1)';
+          statusEl.style.border = '1px solid rgba(255,68,68,0.3)';
+          statusEl.style.color = '#ff4444';
+          statusEl.textContent = '✖ Error: ' + (result.message || result.result || 'Unknown error');
+        }
+      } catch(err) {
+        statusEl.style.background = 'rgba(255,68,68,0.1)';
+        statusEl.style.border = '1px solid rgba(255,68,68,0.3)';
+        statusEl.style.color = '#ff4444';
+        statusEl.textContent = '✖ Network error: ' + err.message;
+      }
+    }
+
+    // GO TO VERIFY — auto-fill contract address
+    function goToVerify() {
+      var addr = document.getElementById('r-address').textContent;
+      if (addr) {
+        document.getElementById('verify-contract').value = addr;
+      }
+      switchTab('verify');
+    }
+
     // REVEAL — READ CONTRACT STATE
     // ══════════════════════════════════════════════════════════════
     async function readRevealStatus() {
@@ -2513,7 +3027,7 @@
       }
 
       // For Solidity single-file verification
-      var url = explorer + '/contract/' + contractAddr + '#code';
+      var url = explorer + '/verifyContract?a=' + contractAddr;
       window.open(url, '_blank');
       showToast('Halaman verifikasi dibuka. Isi form di block explorer.', 'success');
     }

@@ -11,14 +11,9 @@ const PASSWORD = process.env.ACCESS_PASSWORD || "123456";
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// ── Password verification ──
+// ── Password verification (bypassed) ──
 app.post("/api/auth", (req, res) => {
-  const { password } = req.body;
-  if (password === PASSWORD) {
-    res.json({ ok: true });
-  } else {
-    res.status(401).json({ ok: false, error: "Wrong password" });
-  }
+  res.json({ ok: true });
 });
 
 // ── Get supported networks ──

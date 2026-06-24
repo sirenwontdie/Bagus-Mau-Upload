@@ -1,12 +1,12 @@
-require("dotenv").config();
-require("@nomicfoundation/hardhat-toolbox");
+import "dotenv/config";
+import "@nomicfoundation/hardhat-toolbox";
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "0x" + "0".repeat(64);
 const RPC_URL = process.env.RPC_URL || "";
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
 
 /** @type import('hardhat/config').HardhatUserConfig */
-module.exports = {
+export default {
   solidity: {
     version: "0.8.27",
     settings: {
@@ -165,7 +165,7 @@ module.exports = {
         chainId: 421614,
         urls: {
           apiURL: "https://api-sepolia.arbiscan.io/api",
-          browserURL: "https://sepolia.arbiscan.io",
+          browserURL: "https://sepolia.basescan.org",
         },
       },
       {
@@ -173,7 +173,7 @@ module.exports = {
         chainId: 11155420,
         urls: {
           apiURL: "https://api-sepolia-optimistic.etherscan.io/api",
-          browserURL: "https://sepolia-optimistic.etherscan.io",
+          browserURL: "https://sepolia-optimism.io",
         },
       },
       {
@@ -197,7 +197,7 @@ module.exports = {
         chainId: 25,
         urls: {
           apiURL: "https://api.cronoscan.com/api",
-          browserURL: "https://cronoscan.com",
+          browserURL: "https://cronos.com",
         },
       },
     ],
